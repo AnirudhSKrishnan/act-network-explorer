@@ -1,0 +1,222 @@
+{
+  "data_note": "Public OpenStreetMap data, not Evoenergy's network data; OSM power data is incomplete. \u00a9 OpenStreetMap contributors, ODbL.",
+  "params": {
+    "tol_m": 5.0,
+    "sub_tol_m": 30.0,
+    "footprint_tol_m": 5.0,
+    "tx_tol_m": 30.0,
+    "snap_interior": true,
+    "block_cross_class_tsnap": true,
+    "connect_shared_vertices": true,
+    "polygon_point_catchment": true,
+    "near_miss_m": 20.0,
+    "overlap_buffer_m": 1.0,
+    "overlap_min_m": 10.0,
+    "overlap_min_frac": 0.5,
+    "footprint_nest_frac": 0.5
+  },
+  "network": {
+    "n_lines": 6804,
+    "total_km": 2192.2,
+    "km_by_line_class": {
+      "distribution": 1300.5,
+      "transmission": 729.5,
+      "unknown": 162.3
+    },
+    "n_substations": 59,
+    "n_transformers": 43,
+    "graph_nodes": 8602,
+    "graph_edges": 8791,
+    "n_components": 781,
+    "n_components_with_substation": 5,
+    "largest_component_share_of_length": 0.275,
+    "largest_component_share_of_lines": 0.064,
+    "largest_component_km": 603.6,
+    "share_of_length_in_fed_components": 0.483,
+    "share_of_length_with_zone_or_transmission_substation": 0.346,
+    "share_of_length_fed_footprint_only_rule": 0.349,
+    "components_by_tier": {
+      "crosses_boundary": 12,
+      "fed": 5,
+      "isolated": 762,
+      "transformer_only": 2
+    },
+    "km_by_tier": {
+      "crosses_boundary": 520.0,
+      "fed": 1059.1,
+      "isolated": 608.8,
+      "transformer_only": 4.3
+    }
+  },
+  "snapping": {
+    "n_lines": 6804,
+    "n_endpoints": 13608,
+    "n_junction_nodes": 8445,
+    "n_tjunction_snaps": 1463,
+    "n_blocked_cross_class_tsnaps": 2,
+    "n_device_interior_attachments": 4,
+    "n_shared_interior_nodes_joined": 55,
+    "n_shared_interior_nodes_not_joined": 6,
+    "max_cluster_extent_m": 9.46,
+    "n_substation_nodes": 59,
+    "n_transformer_nodes": 43,
+    "blocked_tsnaps_by_class": {
+      "distribution/transmission": 2
+    },
+    "tjunctions_by_class": {
+      "distribution/distribution": 1009,
+      "distribution/unknown": 53,
+      "transmission/transmission": 132,
+      "unknown/distribution": 125,
+      "unknown/transmission": 5,
+      "unknown/unknown": 139
+    }
+  },
+  "checks": {
+    "floating_components": {
+      "count": 764,
+      "km": 613.1,
+      "ways": 3311,
+      "by_tier_and_top_class": {
+        "isolated/distribution": 668,
+        "isolated/unknown": 94,
+        "transformer_only/distribution": 2
+      },
+      "by_size": {
+        "1 way": {
+          "components": 471,
+          "km": 97.0
+        },
+        "2-10 ways": {
+          "components": 226,
+          "km": 174.6
+        },
+        "11-100 ways": {
+          "components": 66,
+          "km": 303.5
+        },
+        ">100 ways": {
+          "components": 1,
+          "km": 38.0
+        }
+      },
+      "excluded_crossing_act_boundary": 12
+    },
+    "dangling_ends": {
+      "count": 4371,
+      "by_line_class": {
+        "distribution": 3823,
+        "unknown": 547,
+        "transmission": 1
+      },
+      "near_miss_by_line_class": {
+        "distribution": 195,
+        "unknown": 64,
+        "transmission": 1
+      },
+      "isolated_by_line_class": {
+        "distribution": 3628,
+        "unknown": 483
+      },
+      "excluded_outside_act": 35,
+      "count_without_tjunction_snapping": 5569
+    },
+    "missing_voltage": {
+      "count": 626,
+      "km": 162.3,
+      "by_power_tag": {
+        "cable": 5,
+        "line": 27,
+        "minor_line": 594
+      }
+    },
+    "voltage_conflicts": {
+      "junctions": 271,
+      "by_kind": {
+        "distribution_vs_distribution": 1,
+        "lv_vs_hv_distribution": 270
+      },
+      "components_affected": 16,
+      "by_voltage_pair": {
+        "415 V vs 11 kV": 270,
+        "22 kV vs 11 kV": 1
+      }
+    },
+    "duplicate_lines": 0,
+    "overlapping_lines": {
+      "count": 26,
+      "by_subtype": {
+        "same_voltage": 25,
+        "unknown_voltage": 1
+      },
+      "partial_overlaps_not_reported": 242
+    },
+    "duplicate_substations": {
+      "nested_footprint": 1,
+      "same_name": 1
+    }
+  },
+  "issues": {
+    "total_rows": 6060,
+    "by_group": {
+      "likely_error": 29,
+      "to_check": 5405,
+      "tag_gap": 626
+    },
+    "by_type": {
+      "dangling_end": 4371,
+      "duplicate_substation": 2,
+      "floating_component": 764,
+      "missing_voltage": 626,
+      "overlapping_lines": 26,
+      "voltage_conflict": 271
+    },
+    "by_type_and_group": {
+      "dangling_end/likely_error": 1,
+      "dangling_end/to_check": 4370,
+      "duplicate_substation/likely_error": 1,
+      "duplicate_substation/to_check": 1,
+      "floating_component/to_check": 764,
+      "missing_voltage/tag_gap": 626,
+      "overlapping_lines/likely_error": 26,
+      "voltage_conflict/likely_error": 1,
+      "voltage_conflict/to_check": 270
+    },
+    "distinct_osm_objects_flagged": 5347,
+    "distinct_osm_objects_flagged_by_group": {
+      "likely_error": 51,
+      "to_check": 5177,
+      "tag_gap": 626
+    }
+  },
+  "sensitivity": [
+    {
+      "tol_m": 2.0,
+      "components": 787,
+      "floating_components": 769,
+      "dangling_ends": 4378,
+      "dangling_transmission": 1,
+      "voltage_conflicts": 269,
+      "fed_length_share": 0.47
+    },
+    {
+      "tol_m": 5.0,
+      "components": 781,
+      "floating_components": 764,
+      "dangling_ends": 4371,
+      "dangling_transmission": 1,
+      "voltage_conflicts": 271,
+      "fed_length_share": 0.483
+    },
+    {
+      "tol_m": 10.0,
+      "components": 762,
+      "floating_components": 746,
+      "dangling_ends": 4312,
+      "dangling_transmission": 1,
+      "voltage_conflicts": 296,
+      "fed_length_share": 0.485
+    }
+  ],
+  "runtime_s": 2.25
+}
