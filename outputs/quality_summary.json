@@ -23,10 +23,22 @@
       "transmission": 729.5,
       "unknown": 162.3
     },
+    "total_km_in_act": 1817.7,
+    "km_in_act_by_line_class": {
+      "distribution": 1286.3,
+      "transmission": 384.2,
+      "unknown": 147.3
+    },
+    "km_substation_bays_busbars": 5.24,
+    "n_substation_bay_busbar_ways": 114,
     "n_substations": 59,
-    "n_transformers": 43,
-    "graph_nodes": 8602,
-    "graph_edges": 8791,
+    "n_transformers": 83,
+    "n_transformers_by_source": {
+      "power=transformer": 43,
+      "pole transformer tag": 40
+    },
+    "graph_nodes": 8642,
+    "graph_edges": 8839,
     "n_components": 781,
     "n_components_with_substation": 5,
     "largest_component_share_of_length": 0.275,
@@ -38,14 +50,14 @@
     "components_by_tier": {
       "crosses_boundary": 12,
       "fed": 5,
-      "isolated": 762,
-      "transformer_only": 2
+      "isolated": 754,
+      "transformer_only": 10
     },
     "km_by_tier": {
       "crosses_boundary": 520.0,
       "fed": 1059.1,
-      "isolated": 608.8,
-      "transformer_only": 4.3
+      "isolated": 577.0,
+      "transformer_only": 36.2
     }
   },
   "snapping": {
@@ -54,12 +66,12 @@
     "n_junction_nodes": 8445,
     "n_tjunction_snaps": 1463,
     "n_blocked_cross_class_tsnaps": 2,
-    "n_device_interior_attachments": 4,
+    "n_device_interior_attachments": 26,
     "n_shared_interior_nodes_joined": 55,
     "n_shared_interior_nodes_not_joined": 6,
     "max_cluster_extent_m": 9.46,
     "n_substation_nodes": 59,
-    "n_transformer_nodes": 43,
+    "n_transformer_nodes": 83,
     "blocked_tsnaps_by_class": {
       "distribution/transmission": 2
     },
@@ -78,9 +90,10 @@
       "km": 613.1,
       "ways": 3311,
       "by_tier_and_top_class": {
-        "isolated/distribution": 668,
-        "isolated/unknown": 94,
-        "transformer_only/distribution": 2
+        "isolated/distribution": 663,
+        "isolated/unknown": 91,
+        "transformer_only/distribution": 7,
+        "transformer_only/unknown": 3
       },
       "by_size": {
         "1 way": {
@@ -103,10 +116,10 @@
       "excluded_crossing_act_boundary": 12
     },
     "dangling_ends": {
-      "count": 4371,
+      "count": 4358,
       "by_line_class": {
-        "distribution": 3823,
-        "unknown": 547,
+        "distribution": 3813,
+        "unknown": 544,
         "transmission": 1
       },
       "near_miss_by_line_class": {
@@ -115,11 +128,11 @@
         "transmission": 1
       },
       "isolated_by_line_class": {
-        "distribution": 3628,
-        "unknown": 483
+        "distribution": 3618,
+        "unknown": 480
       },
       "excluded_outside_act": 35,
-      "count_without_tjunction_snapping": 5569
+      "count_without_tjunction_snapping": 5551
     },
     "missing_voltage": {
       "count": 626,
@@ -131,22 +144,25 @@
       }
     },
     "voltage_conflicts": {
-      "junctions": 271,
+      "junctions": 268,
       "by_kind": {
         "distribution_vs_distribution": 1,
-        "lv_vs_hv_distribution": 270
+        "lv_vs_hv_distribution": 267
       },
       "components_affected": 16,
       "by_voltage_pair": {
-        "415 V vs 11 kV": 270,
+        "415 V vs 11 kV": 267,
         "22 kV vs 11 kV": 1
       }
     },
     "duplicate_lines": 0,
     "overlapping_lines": {
       "count": 26,
+      "inside_substations": 22,
+      "substation_sites": 3,
       "by_subtype": {
-        "same_voltage": 25,
+        "inside_substation/same_voltage": 22,
+        "same_voltage": 3,
         "unknown_voltage": 1
       },
       "partial_overlaps_not_reported": 242
@@ -157,35 +173,36 @@
     }
   },
   "issues": {
-    "total_rows": 6060,
+    "total_rows": 6044,
     "by_group": {
       "likely_error": 29,
-      "to_check": 5405,
+      "to_check": 5389,
       "tag_gap": 626
     },
+    "likely_error_outside_substations": 7,
     "by_type": {
-      "dangling_end": 4371,
+      "dangling_end": 4358,
       "duplicate_substation": 2,
       "floating_component": 764,
       "missing_voltage": 626,
       "overlapping_lines": 26,
-      "voltage_conflict": 271
+      "voltage_conflict": 268
     },
     "by_type_and_group": {
       "dangling_end/likely_error": 1,
-      "dangling_end/to_check": 4370,
+      "dangling_end/to_check": 4357,
       "duplicate_substation/likely_error": 1,
       "duplicate_substation/to_check": 1,
       "floating_component/to_check": 764,
       "missing_voltage/tag_gap": 626,
       "overlapping_lines/likely_error": 26,
       "voltage_conflict/likely_error": 1,
-      "voltage_conflict/to_check": 270
+      "voltage_conflict/to_check": 267
     },
-    "distinct_osm_objects_flagged": 5347,
+    "distinct_osm_objects_flagged": 5337,
     "distinct_osm_objects_flagged_by_group": {
       "likely_error": 51,
-      "to_check": 5177,
+      "to_check": 5166,
       "tag_gap": 626
     }
   },
@@ -194,29 +211,29 @@
       "tol_m": 2.0,
       "components": 787,
       "floating_components": 769,
-      "dangling_ends": 4378,
+      "dangling_ends": 4365,
       "dangling_transmission": 1,
-      "voltage_conflicts": 269,
+      "voltage_conflicts": 266,
       "fed_length_share": 0.47
     },
     {
       "tol_m": 5.0,
       "components": 781,
       "floating_components": 764,
-      "dangling_ends": 4371,
+      "dangling_ends": 4358,
       "dangling_transmission": 1,
-      "voltage_conflicts": 271,
+      "voltage_conflicts": 268,
       "fed_length_share": 0.483
     },
     {
       "tol_m": 10.0,
       "components": 762,
       "floating_components": 746,
-      "dangling_ends": 4312,
+      "dangling_ends": 4299,
       "dangling_transmission": 1,
-      "voltage_conflicts": 296,
+      "voltage_conflicts": 293,
       "fed_length_share": 0.485
     }
   ],
-  "runtime_s": 2.25
+  "runtime_s": 2.31
 }

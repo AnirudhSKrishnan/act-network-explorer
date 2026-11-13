@@ -89,6 +89,7 @@ def zone_substations(subs: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     * ``n_merged`` is the number of source rows; ``merge_spread_m`` is the
       largest distance (m) from the merged point to any member, so a reviewer
       can see whether "duplicates" were really the same place (0 for singles).
+    * Names are compared case- and whitespace-insensitively (as in report.py).
     * Unnamed zone substations (null / blank name) are never merged.
     * Output order follows first appearance in the input.
     """
@@ -96,7 +97,7 @@ def zone_substations(subs: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     cols = [c for c in zone.columns if c not in ("geometry",)]
     names = zone["name"] if "name" in zone.columns else pd.Series([None] * len(zone), index=zone.index)
     zone["_key"] = [
-        f"name:{n.strip()}" if isinstance(n, str) and n.strip() else f"row:{i}"
+        f"name:{' '.join(n.lower().split())}" if isinstance(n, str) and n.strip() else f"row:{i}"
         for i, n in enumerate(names)
     ]
 
@@ -282,7 +283,8 @@ def build_summary(
         ],
         "total_area_km2": round(float(areas["area_km2"].sum()), 2),
         "areas_km2": {
-            str(r["name"]): round(float(r["area_km2"]), 2)
+            (str(r["name"]) if isinstance(r["name"], str) and r["name"].strip()
+             else f"unnamed (osm_id {r.get('osm_id')})"): round(float(r["area_km2"]), 2)
             for _, r in areas.sort_values("area_km2", ascending=False).iterrows()
         },
         "top_furthest_real_suburbs": [

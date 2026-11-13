@@ -64,6 +64,7 @@ SUPPORT_TAGS = ["tower", "pole"]
 KEEP_TAGS = [
     "power", "voltage", "name", "operator", "substation", "cables",
     "circuits", "frequency", "location", "line", "ref",
+    "transformer",  # pole-top transformers: power=pole + transformer=distribution
 ]
 
 # Found on the ABS ASGS Edition 3 "Digital boundary files" page

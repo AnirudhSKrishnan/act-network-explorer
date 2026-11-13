@@ -89,6 +89,8 @@ def test_end_outside_study_area_is_marked():
 def test_missing_voltage_flagged():
     lines = lines_gdf([([(0, 0), (100, 0)], None), ([(0, 50), (100, 50)], "11000")])
     assert report.find_missing_voltage(lines).tolist() == [True, False]
+    # also without the precomputed flag (falls back to the parsed ``voltages`` string)
+    assert report.find_missing_voltage(lines.drop(columns="voltage_missing")).tolist() == [True, False]
 
 
 # ---- floating components ------------------------------------------------------
@@ -263,3 +265,25 @@ def test_lv_vs_11kv_conflict_is_to_check_but_22_vs_11_is_likely_error():
     issues, _ = report.build_issues(topo, NO_SUBS, None)
     conf = issues[issues["issue_type"] == "voltage_conflict"].set_index("subtype")["group"].to_dict()
     assert conf == {"lv_vs_hv_distribution": "to_check", "distribution_vs_distribution": "likely_error"}
+
+
+def test_overlap_inside_substation_gets_own_subtype_and_is_counted_separately():
+    lines = lines_gdf([
+        ([(0, 0), (80, 0)], "132000"),            # bay inside the footprint
+        ([(10, 0.3), (50, 0.3)], "132000"),       # second bay lying on it
+        ([(1000, 0), (1300, 0)], "132000"),       # open-network line
+        ([(1100, 0.3), (1180, 0.3)], "132000"),   # overlapping it, outside any substation
+    ])
+    fp = gpd.GeoDataFrame({"osm_id": [500], "element": "way", "name": ["Sub"]},
+                          geometry=[box(X0 - 10, Y0 - 10, X0 + 90, Y0 + 10)], crs=PROJECT_CRS)
+    subs = subs_gdf([(500, "Sub", (40, 0))])
+    topo = topology.build_graph(lines, subs, fp)
+    issues, extra = report.build_issues(topo, subs, fp)
+    ov = issues[issues["issue_type"] == "overlapping_lines"].set_index("osm_id")["subtype"].to_dict()
+    assert ov == {101: "inside_substation/same_voltage", 103: "same_voltage"}
+    s = report.summarise(topo, issues, extra)
+    assert s["checks"]["overlapping_lines"]["inside_substations"] == 1
+    assert s["checks"]["overlapping_lines"]["substation_sites"] == 1
+    assert s["issues"]["likely_error_outside_substations"] == s["issues"]["by_group"]["likely_error"] - 1
+    md = report.render_markdown(s, issues)
+    assert "inside* substations" in md and "not substation-internal" in md

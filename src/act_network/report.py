@@ -506,21 +506,42 @@ def build_issues(
     dup_pairs = {(min(int(a), int(b)), max(int(a), int(b)))
                  for a, b in zip(dups["line_idx"], dups["original_idx"])}
     over, n_partial = find_overlapping_lines(lines, exclude_pairs=dup_pairs)
+    # overlaps inside a substation (line=bay/busbar ways, or lying within a footprint)
+    # get their own subtype prefix so they are not mistaken for open-network errors
+    internal_flag = (lines["is_substation_internal"].fillna(False).astype(bool).to_numpy()
+                     if "is_substation_internal" in lines else np.zeros(len(lines), bool))
+    fp_geoms = (list(footprints.geometry.buffer(OVERLAP_BUFFER_M + 5.0))
+                if footprints is not None and len(footprints) else [])
+    fp_tree = shapely.STRtree(fp_geoms) if fp_geoms else None
+    over_site = []
     for o in over.itertuples():
         li, oi = int(o.line_idx), int(o.other_idx)
+        site = None
+        if fp_tree is not None:
+            hits = fp_tree.query(o.geometry, predicate="covered_by")
+            if len(hits):
+                site = int(footprints["osm_id"].iat[int(hits[0])])
+        if site is None and internal_flag[li] and internal_flag[oi]:
+            site = -1  # bay/busbar pair outside any mapped footprint
+        over_site.append(site)
         va, vb = lines["vset"].iat[li], lines["vset"].iat[oi]
         sub = ("unknown_voltage" if not va or not vb
                else "same_voltage" if va == vb else "different_voltage")
         details = (f"{o.shared_m:.0f} m ({o.frac_of_shorter:.0%} of this way) lies within "
                    f"{OVERLAP_BUFFER_M:g} m of way {int(lines['osm_id'].iat[oi])} "
                    f"({_kv(va)} vs {_kv(vb)})")
+        if site is not None:
+            sub = f"inside_substation/{sub}"
+            details += ("; inside a substation" + (f" (footprint way {site})" if site > 0 else "")
+                        + ": bay/busbar conductors, possibly mapped twice")
         line_row("overlapping_lines", "likely_error", sub, li, details, o.geometry,
                  _ids(lines, [li, oi]), int(comp_of_line[li]))
 
     # 6. duplicate substations
     dsubs = find_duplicate_substations(substations, footprints)
     sub_geom = {int(i): g for i, g in zip(substations["osm_id"], substations.geometry)}
-    sub_elem = dict(zip(substations["osm_id"].astype(int), substations.get("element", "way")))
+    sub_elem = dict(zip(substations["osm_id"].astype(int),
+                        substations["element"] if "element" in substations else ["way"] * len(substations)))
     if footprints is not None:
         sub_geom.update({int(i): g for i, g in zip(footprints["osm_id"], footprints.geometry)})
     for d in dsubs.itertuples():
@@ -547,6 +568,7 @@ def build_issues(
     issues["osm_url"] = [f"https://www.openstreetmap.org/{e}/{i}" for e, i in zip(issues["element"], issues["osm_id"])]
     issues["component_id"] = issues["component_id"].astype("Int64")
     issues = issues[ISSUE_COLUMNS + ["geometry"]]
+    over = over.assign(substation_site=pd.array(over_site, dtype="Int64"))
     extra = {"components": comps, "dangling": dang, "conflicts": conf, "duplicates": dups,
              "overlaps": over, "n_partial_overlaps": n_partial, "dup_substations": dsubs}
     return issues, extra
@@ -570,8 +592,11 @@ def summarise(topo: Topology, issues: gpd.GeoDataFrame, extra: dict, *, sensitiv
     comps = extra["components"]
     dang = extra["dangling"]
     total_len = float(lines.geometry.length.sum())
-    km_by_class = (lines.geometry.length.groupby(lines.get("line_class", pd.Series("unknown", index=lines.index)))
-                   .sum() / 1000).round(1).to_dict()
+    cls_series = lines.get("line_class", pd.Series("unknown", index=lines.index))
+    km_by_class = (lines.geometry.length.groupby(cls_series).sum() / 1000).round(1).to_dict()
+    in_act_len = (lines["length_in_act_m"].astype(float) if "length_in_act_m" in lines else None)
+    internal = (lines["is_substation_internal"].fillna(False).astype(bool)
+                if "is_substation_internal" in lines else pd.Series(False, index=lines.index))
     largest = comps.iloc[0] if len(comps) else None
     inside = dang[dang["inside_study_area"]]
     cls_of = lines["line_class"].to_numpy() if "line_class" in lines else np.full(len(lines), "unknown")
@@ -595,8 +620,14 @@ def summarise(topo: Topology, issues: gpd.GeoDataFrame, extra: dict, *, sensitiv
             "n_lines": int(len(lines)),
             "total_km": round(total_len / 1000, 1),
             "km_by_line_class": km_by_class,
+            "total_km_in_act": round(float(in_act_len.sum()) / 1000, 1) if in_act_len is not None else None,
+            "km_in_act_by_line_class": ((in_act_len.groupby(cls_series).sum() / 1000).round(1).to_dict()
+                                        if in_act_len is not None else None),
+            "km_substation_bays_busbars": round(float(lines.geometry.length[internal.to_numpy()].sum()) / 1000, 2),
+            "n_substation_bay_busbar_ways": int(internal.sum()),
             "n_substations": topo.stats["n_substation_nodes"],
             "n_transformers": topo.stats["n_transformer_nodes"],
+            "n_transformers_by_source": extra.get("transformers_by_source") or {},
             "graph_nodes": topo.graph.number_of_nodes(),
             "graph_edges": topo.graph.number_of_edges(),
             "n_components": int(len(comps)),
@@ -648,6 +679,10 @@ def summarise(topo: Topology, issues: gpd.GeoDataFrame, extra: dict, *, sensitiv
             "duplicate_lines": int(len(extra["duplicates"])),
             "overlapping_lines": {
                 "count": int(len(extra["overlaps"])),
+                "inside_substations": int(extra["overlaps"]["substation_site"].notna().sum())
+                if "substation_site" in extra["overlaps"] else 0,
+                "substation_sites": int(extra["overlaps"]["substation_site"].dropna().nunique())
+                if "substation_site" in extra["overlaps"] else 0,
                 "by_subtype": _count(issues[issues["issue_type"] == "overlapping_lines"], ["subtype"]),
                 "partial_overlaps_not_reported": extra["n_partial_overlaps"],
             },
@@ -656,6 +691,9 @@ def summarise(topo: Topology, issues: gpd.GeoDataFrame, extra: dict, *, sensitiv
         "issues": {
             "total_rows": int(len(issues)),
             "by_group": by_group,
+            "likely_error_outside_substations": int(
+                ((issues["group"] == "likely_error")
+                 & ~issues["subtype"].fillna("").str.startswith("inside_substation")).sum()),
             "by_type": _count(issues, ["issue_type"]),
             "by_type_and_group": _count(issues, ["issue_type", "group"]),
             "distinct_osm_objects_flagged": ways(issues),
@@ -750,17 +788,24 @@ def render_markdown(summary: dict, issues: pd.DataFrame) -> str:
 
     L.append("## Summary\n")
     L.append(_md_table(
-        ["Group", "Issue rows", "Distinct OSM objects", "Meaning"],
+        ["Group", "Issue rows", "Distinct OSM objects involved", "Meaning"],
         [["Likely errors", iss["by_group"]["likely_error"], iss["distinct_osm_objects_flagged_by_group"]["likely_error"],
-          "wrong as mapped: transmission dead ends / floating transmission, voltage conflicts other than LV-vs-11/22 kV, duplicate or overlapping lines, duplicate substations"],
+          "probably wrong as mapped in OSM: transmission dead ends / floating transmission, voltage conflicts other than LV-vs-11/22 kV, duplicate or overlapping lines, duplicate substations"],
          ["To check", iss["by_group"]["to_check"], iss["distinct_osm_objects_flagged_by_group"]["to_check"],
           "unconnected LV / 11 kV / untagged ends, floating distribution sections and LV meeting 11/22 kV with no transformer mapped; many are normal feeder ends or unmapped equipment"],
          ["Tag gaps", iss["by_group"]["tag_gap"], iss["distinct_osm_objects_flagged_by_group"]["tag_gap"],
           "ways with no voltage tag"],
          ["**All**", f"**{iss['total_rows']}**", f"**{iss['distinct_osm_objects_flagged']}**", ""]]))
     L.append("\nOne OSM way can appear in several rows (e.g. an untagged isolated stub is one floating "
-             "component, two dangling ends and one missing voltage), so the distinct-object column is the "
-             "fairer count of how much of the map needs attention.\n")
+             "component, two dangling ends and one missing voltage). The distinct-object column counts every "
+             "OSM object *involved* in an issue, including the partner way of an overlap or duplicate pair, so "
+             "it is not a count of objects that are themselves wrong.\n")
+    n_inside = ov.get("inside_substations", 0)
+    if n_inside:
+        L.append(f"Of the {iss['by_group']['likely_error']} likely-error rows, {n_inside} are overlapping "
+                 f"conductors *inside* substations ({ov.get('substation_sites', 0)} site(s); mostly "
+                 "`line=bay` / `line=busbar` ways that look mapped twice) and "
+                 f"{iss['likely_error_outside_substations']} are elsewhere (not substation-internal).\n")
 
     L.append("### Counts per check\n")
     size_txt = {k: f"{v['components']} ({v['km']} km)" for k, v in f["by_size"].items()}
@@ -777,7 +822,9 @@ def render_markdown(summary: dict, issues: pd.DataFrame) -> str:
          f"in {vc['components_affected']} components; {fmt(vc['by_voltage_pair'])}; by kind: {fmt(vc['by_kind'])}"],
         ["5a. Exact duplicate lines", chk["duplicate_lines"], "redundant copies"],
         ["5b. Overlapping lines", ov["count"],
-         f"{fmt(ov['by_subtype'])}; {ov['partial_overlaps_not_reported']} partial overlaps below the threshold not reported"],
+         f"{fmt(ov['by_subtype'])} ({ov.get('inside_substations', 0)} inside substations at "
+         f"{ov.get('substation_sites', 0)} site(s)); {ov['partial_overlaps_not_reported']} partial overlaps "
+         "below the threshold not reported"],
         ["5c. Duplicate substations", sum(ds.values()) if ds else 0, fmt(ds)],
     ]
     L.append(_md_table(["Check", "Count", "Breakdown"], rows))
@@ -785,8 +832,18 @@ def render_markdown(summary: dict, issues: pd.DataFrame) -> str:
     L.append("\n## Network size\n")
     L.append(_md_table(["Measure", "Value"], [
         ["Line/cable ways", net["n_lines"]],
-        ["Total length", f"{net['total_km']} km ({fmt({k: f'{v} km' for k, v in net['km_by_line_class'].items()})})"],
-        ["Substations / transformers (graph nodes)", f"{net['n_substations']} / {net['n_transformers']}"],
+        ["Total length of mapped ways (whole ways, incl. parts outside the ACT)",
+         f"{net['total_km']} km ({fmt({k: f'{v} km' for k, v in net['km_by_line_class'].items()})})"],
+        *([["Length inside the ACT boundary",
+            f"{net['total_km_in_act']} km ({fmt({k: f'{v} km' for k, v in net['km_in_act_by_line_class'].items()})})"]]
+          if net.get("total_km_in_act") is not None else []),
+        ["of which substation bays/busbars (`line=bay`/`busbar`)",
+         f"{net['km_substation_bays_busbars']} km ({net['n_substation_bay_busbar_ways']} ways)"],
+        ["OSM substation features / transformers (graph nodes)",
+         f"{net['n_substations']} / {net['n_transformers']}"
+         + (f" (transformers by source: {fmt(net['n_transformers_by_source'])})"
+            if net.get("n_transformers_by_source") else "")
+         + "; substation features are not distinct sites (see duplicate substations)"],
         ["Graph nodes / edges", f"{net['graph_nodes']} / {net['graph_edges']}"],
         ["Connected components (with at least one line)", net["n_components"]],
         ["Components containing a substation", net["n_components_with_substation"]],
@@ -893,9 +950,11 @@ def render_markdown(summary: dict, issues: pd.DataFrame) -> str:
              "- Results depend on the tolerances above; see the sensitivity table.\n"
              "- Lines that merely cross (no shared OSM node, no end near the other line) are *not* connected, "
              "because overhead lines cross without joining.\n"
-             "- Pole-top transformers mapped as a tag on a `power=pole` node (`transformer=distribution`) are not in "
-             "the processed data (only `power=transformer` features are), so a few voltage conflicts and LV dangling "
-             "ends may sit at a transformer that *is* mapped on the pole.\n"
+             "- Transformers include both `power=transformer` features and pole-top transformers mapped as a "
+             "`transformer=*` tag on a `power=pole` node; OSM still maps only a small fraction of the real "
+             "distribution transformers, so most LV-vs-11 kV conflicts are unmapped equipment.\n"
+             "- osmnx returns whole ways that intersect the ACT, so the whole-way totals include line length in "
+             "NSW (mostly 330 kV and 66 kV); use the inside-the-ACT figures for the ACT network.\n"
              f"- Counts by type: {fmt(by)}.\n")
     L.append(f"\n---\n{DATA_NOTE}\n")
     return "\n".join(L)
@@ -916,6 +975,8 @@ def run(path: Path = PROCESSED_PATH, outputs_dir: Path = OUTPUTS_DIR, topology_p
 
     topo = build_graph(lines, subs, fps, txs)
     issues, extra = build_issues(topo, subs, fps, boundary)
+    if "source" in txs:
+        extra["transformers_by_source"] = {str(k): int(v) for k, v in txs["source"].value_counts().items()}
     fp_only = component_table(build_graph(lines, subs, fps, txs, polygon_point_catchment=False))
     fed_fp_only = round(float(fp_only.loc[fp_only["has_substation"], "length_m"].sum())
                         / float(lines.geometry.length.sum()), 3)

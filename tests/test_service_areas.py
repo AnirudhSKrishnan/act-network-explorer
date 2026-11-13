@@ -188,3 +188,10 @@ def test_suburb_distances_uses_point_inside_concave_suburb():
     z = sa.zone_substations(_subs(THREE))
     d = sa.suburb_distances(suburbs, z)
     assert L.contains(d.geometry.iloc[0])
+
+
+def test_zone_dedupe_ignores_case_and_spacing():
+    subs = _subs(THREE + [(10, "west  zone substation", 1_000, 3_020, True)])
+    z = sa.zone_substations(subs)
+    assert len(z) == 3
+    assert z[z["osm_id"] == 1].iloc[0]["osm_ids"] == "1;10"

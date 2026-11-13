@@ -23,7 +23,9 @@ import re
 from pathlib import Path
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
+import shapely
 
 from act_network import fetch
 
@@ -196,13 +198,36 @@ def _add_voltage_columns(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 LINE_COLUMNS = [
     "osm_id", "element", "power", "voltage", "voltages", "voltage_max",
     "voltage_missing", "line_class", "voltage_band", "is_underground",
-    "name", "operator", "circuits", "cables", "location", "length_m", "geometry",
+    "name", "operator", "circuits", "cables", "location", "line", "is_substation_internal",
+    "length_m", "length_in_act_m", "geometry",
 ]
 
+# OSM ``line=bay`` / ``line=busbar``: conductors inside a substation, not network lines.
+SUBSTATION_INTERNAL_LINE_TAGS = ("bay", "busbar")
 
-def clean_lines(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """power = line / minor_line / cable, exploded to single LineStrings, EPSG:7855."""
+
+def _boundary_geom(boundary):
+    """Boundary (GeoDataFrame / GeoSeries / shapely geometry / None) as one EPSG:7855 geometry."""
+    if boundary is None:
+        return None
+    if isinstance(boundary, (gpd.GeoDataFrame, gpd.GeoSeries)):
+        return boundary.to_crs(PROJECT_CRS).geometry.union_all()
+    return boundary  # assumed to be in EPSG:7855 already
+
+
+def clean_lines(raw: gpd.GeoDataFrame, boundary=None) -> gpd.GeoDataFrame:
+    """power = line / minor_line / cable, exploded to single LineStrings, EPSG:7855.
+
+    ``length_in_act_m`` is the length of the part of each line inside
+    ``boundary`` (the ACT): osmnx returns whole ways that intersect the ACT, so
+    lines running into NSW would otherwise be counted at full length. Without
+    a boundary it equals ``length_m``. Out-of-ACT lines are kept (topology
+    needs them). ``line`` is the raw OSM ``line`` tag; ``is_substation_internal``
+    marks ``line=bay`` / ``line=busbar`` (conductors inside a substation).
+    """
     gdf = raw[raw["power"].isin(LINE_POWER_TAGS)].copy()
+    if "line" not in gdf:
+        gdf["line"] = None
     gdf = gdf[~(gdf.geometry.isna() | gdf.geometry.is_empty)]
     gdf = _to_project_crs(gdf)
     # Explode any MultiLineString so each row is one LineString (osm_id repeats).
@@ -216,20 +241,31 @@ def clean_lines(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     gdf["is_underground"] = ((gdf["power"] == "cable") | (location == "underground")).to_numpy()
     gdf["operator"] = gdf["operator"].map(normalise_operator)
     gdf["length_m"] = gdf.geometry.length
+    bound = _boundary_geom(boundary)
+    if bound is None:
+        gdf["length_in_act_m"] = gdf["length_m"]
+    else:
+        gdf["length_in_act_m"] = shapely.length(shapely.intersection(gdf.geometry.values, bound))
+    line_tag = gdf["line"].fillna("").astype(str).str.strip().str.lower()
+    gdf["is_substation_internal"] = line_tag.isin(SUBSTATION_INTERNAL_LINE_TAGS).to_numpy()
 
-    for col in ("voltage", "name", "circuits", "cables", "location", "element", "power"):
+    for col in ("voltage", "name", "circuits", "cables", "location", "element", "power", "line"):
         gdf[col] = _text(gdf[col])
     return gdf[LINE_COLUMNS]
 
 
 SUBSTATION_COLUMNS = [
     "osm_id", "element", "name", "operator", "substation", "voltage", "voltages",
-    "voltage_max", "voltage_missing", "osm_geom_type", "sub_class", "is_zone", "geometry",
+    "voltage_max", "voltage_missing", "osm_geom_type", "sub_class", "is_zone", "in_act", "geometry",
 ]
 
 
-def _classified_substations(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """power = substation rows with all attribute columns, original geometry, EPSG:7855."""
+def _classified_substations(raw: gpd.GeoDataFrame, boundary=None) -> gpd.GeoDataFrame:
+    """power = substation rows with all attribute columns, original geometry, EPSG:7855.
+
+    ``in_act``: the substation's point (centroid for polygons) lies within
+    ``boundary`` (True for all rows when no boundary is given).
+    """
     gdf = raw[raw["power"] == "substation"].copy()
     gdf = gdf[~(gdf.geometry.isna() | gdf.geometry.is_empty)]
     gdf = _to_project_crs(gdf).reset_index(drop=True)
@@ -240,40 +276,83 @@ def _classified_substations(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         substation_class(n, parse_voltage(v)) for n, v in zip(gdf["name"], gdf["voltage"])
     ]
     gdf["is_zone"] = (gdf["sub_class"] == "zone").to_numpy()
+    bound = _boundary_geom(boundary)
+    gdf["in_act"] = (np.ones(len(gdf), bool) if bound is None
+                     else shapely.covers(bound, gdf.geometry.centroid.values))
     for col in ("name", "substation", "voltage", "element"):
         gdf[col] = _text(gdf[col])
     return gdf[SUBSTATION_COLUMNS]
 
 
-def clean_substations(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """One Point per power=substation (polygons -> centroid). Duplicates are kept."""
-    gdf = _classified_substations(raw)
+def clean_substations(raw: gpd.GeoDataFrame, boundary=None) -> gpd.GeoDataFrame:
+    """One Point per power=substation (polygons -> centroid). Duplicates are kept.
+
+    Substations outside ``boundary`` (e.g. NSW-side ones reached by lines that
+    cross into the ACT) are kept with ``in_act`` False.
+    """
+    gdf = _classified_substations(raw, boundary)
     gdf["geometry"] = gdf.geometry.centroid  # no-op for points
     return gdf
 
 
-def clean_substation_footprints(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def clean_substation_footprints(raw: gpd.GeoDataFrame, boundary=None) -> gpd.GeoDataFrame:
     """The polygon substations, same columns as ``substations`` but polygon geometry."""
-    gdf = _classified_substations(raw)
+    gdf = _classified_substations(raw, boundary)
     return gdf[gdf.geom_type.isin(["Polygon", "MultiPolygon"])].reset_index(drop=True)
 
 
-def clean_transformers(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """power = transformer as points (osm_id, element, name, operator)."""
+TRANSFORMER_COLUMNS = ["osm_id", "element", "name", "operator", "source", "geometry"]
+TX_SOURCE_FEATURE = "power=transformer"
+TX_SOURCE_POLE_TAG = "pole transformer tag"
+
+
+def clean_transformers(raw: gpd.GeoDataFrame, supports: gpd.GeoDataFrame | None = None) -> gpd.GeoDataFrame:
+    """Transformers as points: ``power=transformer`` features, plus (if ``supports``
+    is given) poles/towers carrying a ``transformer=*`` tag (pole-top transformers,
+    e.g. ``power=pole`` + ``transformer=distribution``).
+
+    Columns: osm_id, element, name, operator, ``source`` ("power=transformer" or
+    "pole transformer tag"), geometry (EPSG:7855).
+    """
     gdf = raw[raw["power"] == "transformer"].copy()
     gdf = gdf[~(gdf.geometry.isna() | gdf.geometry.is_empty)]
     gdf = _to_project_crs(gdf).reset_index(drop=True)
     gdf["geometry"] = gdf.geometry.centroid  # no-op for points
+    gdf["source"] = TX_SOURCE_FEATURE
+    parts = [gdf]
+    if supports is not None and len(supports) and "transformer" in supports:
+        tag = supports["transformer"]
+        poles = supports[tag.notna() & tag.astype(str).str.strip().ne("")
+                         & ~tag.astype(str).str.strip().str.lower().isin(["no", "none"])].copy()
+        poles = poles[~(poles.geometry.isna() | poles.geometry.is_empty)]
+        if len(poles):
+            poles = _to_project_crs(poles).reset_index(drop=True)
+            for col in ("element", "name", "operator"):
+                if col not in poles:
+                    poles[col] = "node" if col == "element" else None
+            poles["source"] = TX_SOURCE_POLE_TAG
+            parts.append(poles)
+    gdf = pd.concat([p[["osm_id", "element", "name", "operator", "source", "geometry"]] for p in parts],
+                    ignore_index=True)
+    gdf = gpd.GeoDataFrame(gdf, geometry="geometry", crs=PROJECT_CRS)
     gdf["operator"] = gdf["operator"].map(normalise_operator)
     for col in ("name", "element"):
         gdf[col] = _text(gdf[col])
-    return gdf[["osm_id", "element", "name", "operator", "geometry"]]
+    return gdf[TRANSFORMER_COLUMNS]
+
+
+SUPPORT_COLUMNS = ["osm_id", "element", "power", "transformer", "geometry"]
 
 
 def clean_supports(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """Poles / towers (osm_id, power), EPSG:7855."""
-    gdf = raw[~(raw.geometry.isna() | raw.geometry.is_empty)]
-    return _to_project_crs(gdf)[["osm_id", "power", "geometry"]].reset_index(drop=True)
+    """Poles / towers (osm_id, element, power, transformer tag), EPSG:7855."""
+    gdf = raw[~(raw.geometry.isna() | raw.geometry.is_empty)].copy()
+    if "element" not in gdf:
+        gdf["element"] = "node"
+    if "transformer" not in gdf:
+        gdf["transformer"] = None
+    gdf["transformer"] = _text(gdf["transformer"])
+    return _to_project_crs(gdf)[SUPPORT_COLUMNS].reset_index(drop=True)
 
 
 def clean_boundary(raw: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -309,13 +388,14 @@ def main() -> int:
     boundary = gpd.read_file(fetch.BOUNDARY_PATH, layer=fetch.BOUNDARY_LAYER)
     suburbs = gpd.read_file(fetch.SUBURBS_PATH, layer=fetch.SUBURBS_LAYER)
 
+    act = clean_boundary(boundary)
     layers = {
-        LINES_LAYER: clean_lines(network),
-        SUBSTATIONS_LAYER: clean_substations(network),
-        FOOTPRINTS_LAYER: clean_substation_footprints(network),
-        TRANSFORMERS_LAYER: clean_transformers(network),
+        LINES_LAYER: clean_lines(network, act),
+        SUBSTATIONS_LAYER: clean_substations(network, act),
+        FOOTPRINTS_LAYER: clean_substation_footprints(network, act),
+        TRANSFORMERS_LAYER: clean_transformers(network, supports),
         SUPPORTS_LAYER: clean_supports(supports),
-        BOUNDARY_LAYER: clean_boundary(boundary),
+        BOUNDARY_LAYER: act,
         SUBURBS_LAYER: clean_suburbs(suburbs),
     }
 
