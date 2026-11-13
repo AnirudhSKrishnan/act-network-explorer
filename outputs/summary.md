@@ -8,7 +8,7 @@ Every figure below is computed by `python -m act_network.build` from the process
 
 ## Line length
 
-**Headline: 1,817.7 km of mapped line inside the ACT** (14.3 km of it underground cable), from 6,804 mapped OSM segments. Lengths are measured in EPSG:7855 and clipped to the ACT boundary (`length_in_act_m`). Overlapping or duplicated ways are counted as mapped.
+**Headline: 1,817.7 km of mapped line inside the ACT** (14.3 km of it underground), from 6,804 mapped OSM segments. Lengths are measured in EPSG:7855 and clipped to the ACT boundary (`length_in_act_m`). Overlapping or duplicated ways are counted as mapped.
 
 Why two columns: OpenStreetMap queries return whole ways, and 49 of the segments cross the ACT border. Summing whole-way lengths gives 2,192.2 km (14.4 km underground), which includes NSW sections. Use the in-ACT figures.
 
@@ -33,7 +33,7 @@ By line class (transmission = 66 kV and above; unknown = no usable voltage tag):
 | distribution | 1,286.3 | 1,300.5 |
 | unknown | 147.3 | 162.3 |
 
-Underground (power=cable): **14.3 km** inside the ACT (14.4 km whole mapped ways; 31 segments).
+Underground (power=cable or location=underground): **14.3 km** inside the ACT (14.4 km whole mapped ways; 31 segments).
 
 Substation bays and busbars: 114 ways tagged `line=bay` / `line=busbar` (5.24 km inside the ACT, 5.24 km whole ways; 5.24 km transmission inside the ACT). They are conductors inside substation sites, not network lines, but they are included in the totals and bands above. Excluding them, transmission is 378.9 km inside the ACT.
 
@@ -58,7 +58,7 @@ Transformers (OSM point features, not a count of installed transformers): **83**
 
 ## Data-quality issues
 
-The checks flagged **6,044** issue rows across 5,337 distinct OSM objects. The row count is not an error count: most rows are 'to check' items (e.g. dangling line ends and disconnected sections, which may partly reflect incomplete OSM mapping) and tag gaps, not confirmed mistakes. None has been verified against the real network.
+The checks flagged **6,044** issue rows involving 5,337 distinct OSM objects (this counts every object involved, including the partner way of an overlap and every member way of a floating section, so it is not a count of wrong objects). The row count is not an error count: most rows are 'to check' items (e.g. dangling line ends and disconnected sections, which may partly reflect incomplete OSM mapping) and tag gaps, not confirmed mistakes. None has been verified against the real network.
 
 By group:
 

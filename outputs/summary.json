@@ -157,6 +157,7 @@
     "n_loads": 9,
     "load_kw_each": 200.0,
     "power_factor": 0.95,
+    "source_vm_pu": 1.0,
     "base": {
       "load_multiplier": 1.0,
       "total_load_kw": 1800.0,

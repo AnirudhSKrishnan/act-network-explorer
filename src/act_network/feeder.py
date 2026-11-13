@@ -278,7 +278,7 @@ def run_load_flow(net, load_multiplier: float = 1.0) -> dict:
 
 
 def _collect_results(net, load_multiplier: float) -> dict:
-    vm =net.res_bus.vm_pu.sort_index().to_numpy()
+    vm = net.res_bus.vm_pu.sort_index().to_numpy()
     dist_km = np.r_[0.0, np.cumsum(net.line.sort_index().length_km.to_numpy())]
     end = int(len(vm) - 1)
     loading = net.res_line.loading_percent
@@ -436,8 +436,8 @@ def plot_profile(base: dict, doubled: dict, path: Path, title: str) -> None:
     leg = ax.legend(loc="center right", bbox_to_anchor=(1.0, 0.42), frameon=False, fontsize=8.5)
     for t in leg.get_texts():
         t.set_color(ink)
-    fig.text(0.01, 0.01, "Toy model: assumed loads (200 kW, 0.95 PF) and cable type; route/lengths from "
-             "OpenStreetMap. Not Evoenergy data.", fontsize=7, color=muted)
+    fig.text(0.01, 0.01, f"Toy model: assumed loads ({LOAD_KW:.0f} kW, {POWER_FACTOR} PF lagging) and cable type; "
+             "route/lengths from OpenStreetMap. Not Evoenergy data.", fontsize=7, color=muted)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig.savefig(path, facecolor=surface)
     plt.close(fig)

@@ -11,3 +11,10 @@ data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+# Small cached inputs are committed so a fresh clone builds offline
+# (OSM data © OpenStreetMap contributors, ODbL; ABS SAL CC BY 4.0).
+# The 104 MB ABS zip and the osmnx HTTP cache stay ignored.
+!data/raw/act_boundary.gpkg
+!data/raw/act_suburbs.gpkg
+!data/raw/osm_power_network.gpkg
+!data/raw/osm_power_supports.gpkg

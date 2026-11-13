@@ -208,6 +208,7 @@ def summarise_feeder(f: dict | None) -> dict | None:
         "n_loads": model.get("n_loads"),
         "load_kw_each": model.get("load_kw"),
         "power_factor": model.get("power_factor"),
+        "source_vm_pu": model.get("source_vm_pu"),
         "base": case(res["base"]),
         "doubled": case(res.get("doubled", {})) if res.get("doubled") else None,
         "voltage_limit_multiplier": _r(lim.get("voltage_multiplier"), 2),
@@ -271,7 +272,7 @@ def render_markdown(s: dict) -> str:
         "## Line length",
         "",
         f"**Headline: {ln['total_km']:,.1f} km of mapped line inside the ACT** "
-        f"({ln['km_underground']:,.1f} km of it underground cable), from {ln['n_line_segments']:,} mapped OSM "
+        f"({ln['km_underground']:,.1f} km of it underground), from {ln['n_line_segments']:,} mapped OSM "
         "segments. Lengths are measured in EPSG:7855 and clipped to the ACT boundary "
         "(`length_in_act_m`). Overlapping or duplicated ways are counted as mapped.",
         "",
@@ -293,7 +294,7 @@ def render_markdown(s: dict) -> str:
         _table(["Line class", "km inside the ACT", whole_hdr],
                [[k, f"{v:,.1f}", f"{cls_w.get(k, 0.0):,.1f}"] for k, v in cls.items()]),
         "",
-        "Underground (power=cable): "
+        "Underground (power=cable or location=underground): "
         f"**{ln['km_underground']:,.1f} km** inside the ACT ({ln['km_underground_whole_ways']:,.1f} km whole "
         f"mapped ways; {ln['n_underground_segments']:,} segments).",
         "",
@@ -341,7 +342,9 @@ def render_markdown(s: dict) -> str:
         "## Data-quality issues",
         "",
         f"The checks flagged **{qi['total_rows']:,}** issue rows"
-        + (f" across {qi['distinct_osm_objects_flagged']:,} distinct OSM objects" if qi.get("distinct_osm_objects_flagged") else "")
+        + (f" involving {qi['distinct_osm_objects_flagged']:,} distinct OSM objects (this counts every object "
+           "involved, including the partner way of an overlap and every member way of a floating section, so it "
+           "is not a count of wrong objects)" if qi.get("distinct_osm_objects_flagged") else "")
         + ". The row count is not an error count: most rows are 'to check' items (e.g. dangling line ends and "
         "disconnected sections, which may partly reflect incomplete OSM mapping) and tag gaps, "
         "not confirmed mistakes. None has been verified against the real network.",
@@ -390,7 +393,7 @@ def render_markdown(s: dict) -> str:
             "not any real feeder.",
             "",
             f"- Substation: **{f.get('substation') or 'n/a'}** (OSM {_fmt(f.get('substation_osm_id'))})"
-            + (" (fallback path: no 11 kV path was found)" if f.get("fallback_path") else ""),
+            + (" (fallback path: no zone substation touches an 11 kV-tagged line)" if f.get("fallback_path") else ""),
             f"- Path: **{_fmt(f['path_length_km'], '.2f', ' km')}** along {f['n_osm_ways']} OSM ways, "
             f"**{_fmt(f['n_buses'])} buses** ({_fmt(f['n_model_sections'])} model sections). Trunk only: branches "
             "are ignored."
@@ -399,7 +402,7 @@ def render_markdown(s: dict) -> str:
                if f.get("n_zone_substations_with_11kv") is not None and f.get("n_zone_substations") else ""),
             f"- Assumed cable: {f.get('cable_std_type')} on every section; {_fmt(f.get('n_loads'))} loads of "
             f"{_fmt(f.get('load_kw_each'), '.0f', ' kW')} each at power factor {_fmt(f.get('power_factor'))}, "
-            "ideal 1.00 pu source, no transformers.",
+            f"ideal {_fmt(f.get('source_vm_pu'), '.2f')} pu source, no transformers.",
             "",
         ]
         rows = [["Total load (kW)", _fmt(b["total_load_kw"], ",.0f"), _fmt(d and d["total_load_kw"], ",.0f")],

@@ -64,7 +64,7 @@ SUB_STYLE = {  # sub_class -> (colour, radius)
     "distribution": ("#1B1B1B", 3.5),
 }
 ISSUE_COLOURS = {
-    "dangling_end": "#E31A1C",
+    "dangling_end": "#FF7F00",
     "floating_component": "#FF7F00",
     "voltage_conflict": "#984EA3",
     "overlapping_lines": "#E31A1C",
@@ -146,8 +146,15 @@ def _col(gdf: gpd.GeoDataFrame, name: str) -> list:
 
 
 def _geojson(gdf: gpd.GeoDataFrame, keep: list[str]) -> dict:
-    """GeoJSON dict with only ``keep`` properties and no feature ids."""
-    return json.loads(gdf[keep + ["geometry"]].to_json(drop_id=True, show_bbox=False))
+    """GeoJSON dict with only ``keep`` properties and short sequential feature ids.
+
+    The ids matter for size: without a feature id folium keys its per-feature style
+    ``switch`` on the first unique property (the long popup HTML), duplicating it.
+    """
+    data = json.loads(gdf[keep + ["geometry"]].to_json(drop_id=True, show_bbox=False))
+    for i, feat in enumerate(data["features"]):
+        feat["id"] = i
+    return data
 
 
 def _popup_layer(data: dict, style_function, *, name: str, show: bool = True, marker=None,
@@ -231,7 +238,7 @@ def substation_layer(subs: gpd.GeoDataFrame) -> folium.GeoJson:
         return {"color": "#222222", "weight": 1, "fillColor": colour, "fillOpacity": 0.95, "radius": radius}
 
     return _popup_layer(_geojson(g, ["popup", "sub_class"]), style, name=LAYER_NAMES["substations"],
-                        marker=folium.CircleMarker(radius=5))
+                        marker=folium.CircleMarker(radius=5, fill=True))
 
 
 def area_layer(areas: gpd.GeoDataFrame) -> folium.GeoJson:
@@ -315,12 +322,12 @@ def issue_layer(issues: gpd.GeoDataFrame, name: str, *, show: bool, use_geometry
         def style(f):
             c = ISSUE_COLOURS.get(f["properties"]["itype"], "#E31A1C")
             return {"color": "#E31A1C", "weight": 5, "opacity": 0.9, "fillColor": c, "fillOpacity": 0.5, "radius": 7}
-        marker = folium.CircleMarker(radius=7)
+        marker = folium.CircleMarker(radius=7, fill=True)
     else:
         def style(f):
             c = ISSUE_COLOURS.get(f["properties"]["itype"], "#666666")
             return {"color": c, "weight": 1, "fillColor": c, "fillOpacity": 0.6, "opacity": 0.8, "radius": 3}
-        marker = folium.CircleMarker(radius=3)
+        marker = folium.CircleMarker(radius=3, fill=True)
     return _popup_layer(_geojson(g, ["popup", "itype"]), style, name=name, show=show, marker=marker,
                         highlight=use_geometry)
 
@@ -438,7 +445,7 @@ def feeder_layer(feeder: dict, lines: gpd.GeoDataFrame | None = None, *, show: b
         return {"color": FEEDER_COLOUR, "weight": 6, "opacity": 0.85}
 
     return _popup_layer(_geojson(g, ["popup", "kind"]), style, name=FEEDER_LAYER_NAME, show=show,
-                        marker=folium.CircleMarker(radius=5), highlight=True)
+                        marker=folium.CircleMarker(radius=5, fill=True), highlight=True)
 
 
 # ---------------------------------------------------------------------------
@@ -469,7 +476,8 @@ def legend_html(feeder: bool = False) -> str:
     rows.append(f'{_swatch("#444")}Thin line: substation bay / busbar'.replace("border-top:3px", "border-top:1px"))
     rows.append("<hr style='margin:4px 0'>")
     rows.append(f'{_swatch("#E31A1C", "dot")}Likely error (on)')
-    rows.append(f'{_swatch("#FF7F00", "dot")}To check: dangling end / floating / conflict (off)')
+    rows.append(f'{_swatch("#FF7F00", "dot")}To check: dangling end / floating section (off)')
+    rows.append(f'{_swatch(ISSUE_COLOURS["voltage_conflict"], "dot")}To check: voltage conflict (off)')
     rows.append(f'{_swatch("#666666", "dot")}Tag gap: missing voltage (off)')
     body = "<br>".join(rows)
     return (

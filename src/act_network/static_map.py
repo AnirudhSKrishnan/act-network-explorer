@@ -80,7 +80,7 @@ def plot_map(lines, substations, suburbs, boundary, areas=None, dpi: int = DPI):
     ax.set_xlim(minx - pad, maxx + pad)
     ax.set_ylim(miny - pad, maxy + pad)
     ax.set_aspect("equal")
-    ax.set_title(TITLE, fontsize=11, fontweight="bold")
+    ax.set_title(TITLE, fontsize=10, fontweight="bold")
     ax.set_xlabel("Easting (m, GDA2020 / MGA zone 55, EPSG:7855)", fontsize=7)
     ax.set_ylabel("Northing (m)", fontsize=7)
     ax.tick_params(labelsize=6)

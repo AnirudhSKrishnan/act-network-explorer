@@ -124,6 +124,16 @@ def test_disclaimer_and_legend_present(html_text):
     assert "Rough nearest-substation area" in html_text
 
 
+def test_point_markers_are_filled_and_styles_keyed_on_feature_id(fmap, html_text):
+    # folium's CircleMarker defaults to fill=false, which draws substations / issue points hollow
+    for name in (webmap.LAYER_NAMES["substations"], webmap.LAYER_NAMES["check"]):
+        assert _overlays(fmap)[name].marker.options["fill"] is True
+    assert '"fill": false' not in html_text
+    # short feature ids, so folium's style switch is not keyed on (and does not duplicate) the popup HTML
+    assert "switch(feature.properties.popup)" not in html_text
+    assert all("id" in f for f in _overlays(fmap)[webmap.LAYER_NAMES["substations"]].data["features"])
+
+
 def test_popups_link_to_osm_and_escape_tags(html_text):
     assert "https://www.openstreetmap.org/way/1" in html_text
     assert "<script>alert(1)</script>" not in html_text  # OSM name tag must be escaped
