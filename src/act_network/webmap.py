@@ -9,7 +9,7 @@ to EPSG:4326 for Leaflet and writes a single self-contained HTML file (only the
 JS/CSS that folium itself references is loaded).
 
 Data provenance: public OpenStreetMap data (c) OpenStreetMap contributors (ODbL);
-suburbs (c) ABS (CC BY 4.0). NOT Evoenergy network data; OSM power data is
+suburbs (c) ABS (CC BY 4.0). NOT official network operator data; OSM power data is
 incomplete; service areas are rough geometric estimates, not feeder boundaries.
 """
 
@@ -36,7 +36,7 @@ TOPOLOGY_PATH = clean.PROCESSED_DIR / "topology.gpkg"
 
 DISCLAIMER = (
     "Data: © OpenStreetMap contributors (ODbL); suburbs © ABS (CC BY 4.0). "
-    "Public OSM data — NOT Evoenergy network data; OSM power data is incomplete. "
+    "Public OSM data — NOT official network operator data; OSM power data is incomplete. "
     "Service areas are rough geometric estimates, not feeder boundaries."
 )
 
@@ -337,7 +337,7 @@ def issue_layer(issues: gpd.GeoDataFrame, name: str, *, show: bool, use_geometry
 # ---------------------------------------------------------------------------
 
 TOY_NOTE = ("TOY MODEL: assumed loads and cable type (pandapower). Route and lengths come from public OSM data. "
-            "Not a real Evoenergy feeder study.")
+            "Not a real utility feeder study.")
 
 
 def load_feeder_results(path: Path | None = None) -> dict | None:

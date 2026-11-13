@@ -5,7 +5,7 @@ Run with::
     python -m act_network.static_map
 
 Data: (c) OpenStreetMap contributors (ODbL); suburbs (c) ABS (CC BY 4.0). Public
-OSM data, NOT Evoenergy network data; OSM power data is incomplete.
+OSM data, NOT official network operator data; OSM power data is incomplete.
 """
 
 from __future__ import annotations

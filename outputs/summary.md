@@ -1,10 +1,10 @@
 # ACT electricity network from OpenStreetMap: summary of numbers
 
-Generated: 2026-11-13
+Generated: 2026-11-14
 
-> Data: © OpenStreetMap contributors (ODbL); suburbs © ABS (CC BY 4.0). Public OSM data — NOT Evoenergy network data; OSM power data is incomplete. Service areas are rough geometric estimates, not feeder boundaries.
+> Data: © OpenStreetMap contributors (ODbL); suburbs © ABS (CC BY 4.0). Public OSM data — NOT official network operator data; OSM power data is incomplete. Service areas are rough geometric estimates, not feeder boundaries.
 
-Every figure below is computed by `python -m act_network.build` from the processed data and check outputs. Nothing here is Evoenergy data, and OSM coverage is incomplete, so these are counts of what is mapped in OpenStreetMap, not of the real network.
+Every figure below is computed by `python -m act_network.build` from the processed data and check outputs. Nothing here is official network operator data, and OSM coverage is incomplete, so these are counts of what is mapped in OpenStreetMap, not of the real network.
 
 ## Line length
 
@@ -95,7 +95,7 @@ Straight-line distance from a suburb's representative point to the nearest zone 
 | 4 | Denman Prospect | 5.9 | Woden Substation |
 | 5 | Macnamara | 5.6 | Latham Zone Substation |
 
-## Toy 11 kV feeder load flow (assumed loads and cable type; not a real Evoenergy feeder study)
+## Toy 11 kV feeder load flow (assumed loads and cable type; not a real utility feeder study)
 
 A pandapower toy model on one 11 kV path taken from the OSM data. Route and lengths come from OpenStreetMap; every electrical parameter is assumed (see the assumptions table in [outputs/feeder_results.md](feeder_results.md)). The results below describe the toy model only, not any real feeder.
 
@@ -111,5 +111,5 @@ A pandapower toy model on one 11 kV path taken from the OSM data. Route and leng
 | Max cable loading (% of rating) | 27.4 | 55.7 |
 | Losses (kW) | 16.1 | 66.8 |
 
-Load multiplier (x the base loads) at which the toy model reaches a reference limit: voltage below 0.94 pu at **4.03x**; cable loading above 100 % of rating at **3.52x**. Binding limit: thermal (loading > 100 % of cable rating). The limits are typical-practice references, not Evoenergy's standards.
+Load multiplier (x the base loads) at which the toy model reaches a reference limit: voltage below 0.94 pu at **4.03x**; cable loading above 100 % of rating at **3.52x**. Binding limit: thermal (loading > 100 % of cable rating). The limits are typical-practice references, not any network operator's standards.
 

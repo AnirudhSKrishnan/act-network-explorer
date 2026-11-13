@@ -13,13 +13,14 @@ The cleaning steps are pure functions of a (raw) GeoDataFrame so they can be
 unit-tested without touching ``data/raw/``; ``main()`` does the file I/O.
 
 Data provenance: public OpenStreetMap data (c) OpenStreetMap contributors
-(ODbL) -- NOT Evoenergy's network data, and OSM power mapping is incomplete.
+(ODbL) -- NOT official network operator data, and OSM power mapping is incomplete.
 Suburb boundaries: ABS ASGS 2021 (CC BY 4.0).
 """
 
 from __future__ import annotations
 
 import re
+from collections import Counter
 from pathlib import Path
 
 import geopandas as gpd
@@ -119,24 +120,29 @@ def line_class(voltage_max) -> str:
     return "transmission" if int(voltage_max) >= TRANSMISSION_MIN_V else "distribution"
 
 
-def normalise_operator(value: str | None) -> str | None:
-    """Collapse the inconsistent OSM operator spellings.
+def normalise_operators(values: pd.Series) -> pd.Series:
+    """Collapse operator spellings that differ only in case or surrounding whitespace.
 
-    Evoenergy / evoenergy / ActewAGL / ACTEWAGL -> "Evoenergy";
-    TransGrid / Transgrid -> "TransGrid"; anything else is kept as written
-    (whitespace-stripped); empty -> None.
+    Values are grouped by a case-insensitive, whitespace-trimmed key and every
+    member of a group is replaced by one canonical spelling: the most frequent
+    (whitespace-trimmed) spelling in ``values``, ties broken alphabetically.
+    Empty, blank and missing values become ``None``.
+
+    Former-name aliases or other renamings of the same organisation are NOT
+    merged: that would need a hard-coded list of company names, so the rule is
+    deliberately company-neutral.
     """
-    if value is None or pd.isna(value):
-        return None
-    text = str(value).strip()
-    if not text:
-        return None
-    key = text.lower().replace(" ", "")
-    if key in {"evoenergy", "actewagl"}:
-        return "Evoenergy"
-    if key == "transgrid":
-        return "TransGrid"
-    return text
+    text = [None if pd.isna(v) or not str(v).strip() else str(v).strip() for v in values]
+    tally = Counter(v for v in text if v is not None)
+    canonical: dict[str, tuple[int, str]] = {}
+    for spelling, n in tally.items():
+        key = spelling.lower()
+        best = canonical.get(key)
+        # most frequent wins; alphabetical order breaks ties
+        if best is None or (-n, spelling) < (-best[0], best[1]):
+            canonical[key] = (n, spelling)
+    return pd.Series([None if v is None else canonical[v.lower()][1] for v in text],
+                     index=values.index, dtype="object", name=values.name)
 
 
 def strip_act_suffix(name: str) -> str:
@@ -239,7 +245,7 @@ def clean_lines(raw: gpd.GeoDataFrame, boundary=None) -> gpd.GeoDataFrame:
     gdf["voltage_band"] = gdf["voltage_max"].map(voltage_band)
     location = gdf["location"].fillna("").str.strip().str.lower()
     gdf["is_underground"] = ((gdf["power"] == "cable") | (location == "underground")).to_numpy()
-    gdf["operator"] = gdf["operator"].map(normalise_operator)
+    gdf["operator"] = normalise_operators(gdf["operator"])
     gdf["length_m"] = gdf.geometry.length
     bound = _boundary_geom(boundary)
     if bound is None:
@@ -271,7 +277,7 @@ def _classified_substations(raw: gpd.GeoDataFrame, boundary=None) -> gpd.GeoData
     gdf = _to_project_crs(gdf).reset_index(drop=True)
     gdf["osm_geom_type"] = gdf.geom_type
     gdf = _add_voltage_columns(gdf)
-    gdf["operator"] = gdf["operator"].map(normalise_operator)
+    gdf["operator"] = normalise_operators(gdf["operator"])
     gdf["sub_class"] = [
         substation_class(n, parse_voltage(v)) for n, v in zip(gdf["name"], gdf["voltage"])
     ]
@@ -335,7 +341,7 @@ def clean_transformers(raw: gpd.GeoDataFrame, supports: gpd.GeoDataFrame | None 
     gdf = pd.concat([p[["osm_id", "element", "name", "operator", "source", "geometry"]] for p in parts],
                     ignore_index=True)
     gdf = gpd.GeoDataFrame(gdf, geometry="geometry", crs=PROJECT_CRS)
-    gdf["operator"] = gdf["operator"].map(normalise_operator)
+    gdf["operator"] = normalise_operators(gdf["operator"])
     for col in ("name", "element"):
         gdf[col] = _text(gdf[col])
     return gdf[TRANSFORMER_COLUMNS]
@@ -406,7 +412,7 @@ def main() -> int:
         print(f"[{name}] {len(gdf)} rows, CRS EPSG:{gdf.crs.to_epsg()}")
     print(f"Wrote {PROCESSED_PATH}")
     print("Data: (c) OpenStreetMap contributors (ODbL); ABS ASGS (CC BY 4.0). "
-          "Public OSM data - not Evoenergy network data; OSM is incomplete.")
+          "Public OSM data - not official network operator data; OSM is incomplete.")
     return 0
 
 

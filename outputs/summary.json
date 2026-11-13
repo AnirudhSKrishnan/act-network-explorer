@@ -1,6 +1,6 @@
 {
-  "generated": "2026-11-13",
-  "data_note": "Data: \u00a9 OpenStreetMap contributors (ODbL); suburbs \u00a9 ABS (CC BY 4.0). Public OSM data \u2014 NOT Evoenergy network data; OSM power data is incomplete. Service areas are rough geometric estimates, not feeder boundaries.",
+  "generated": "2026-11-14",
+  "data_note": "Data: \u00a9 OpenStreetMap contributors (ODbL); suburbs \u00a9 ABS (CC BY 4.0). Public OSM data \u2014 NOT official network operator data; OSM power data is incomplete. Service areas are rough geometric estimates, not feeder boundaries.",
   "lines": {
     "n_line_segments": 6804,
     "n_segments_crossing_act_boundary": 49,

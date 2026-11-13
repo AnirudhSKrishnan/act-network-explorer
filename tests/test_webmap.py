@@ -32,7 +32,7 @@ def _lines():
             "line_class": [r[4] for r in rows], "is_underground": [r[5] for r in rows],
             "line": [r[8] for r in rows], "is_substation_internal": [r[9] for r in rows],
             "name": ["<script>alert(1)</script>", None, None, None, None, None],
-            "operator": "Evoenergy", "circuits": None, "cables": None, "location": None,
+            "operator": "Northgrid", "circuits": None, "cables": None, "location": None,
         },
         geometry=[r[6] for r in rows], crs=CRS,
     )
@@ -44,7 +44,7 @@ def _lines():
 
 def _subs():
     return gpd.GeoDataFrame(
-        {"osm_id": [10, 11, 12], "element": "way", "name": ["TS", "Zone A", None], "operator": "Evoenergy",
+        {"osm_id": [10, 11, 12], "element": "way", "name": ["TS", "Zone A", None], "operator": "Northgrid",
          "voltage": ["330000", "132000;11000", None], "sub_class": ["transmission", "zone", "distribution"],
          "osm_geom_type": "Point"},
         geometry=[Point(X0, Y0), Point(X0 + 100, Y0 + 100), Point(X0 + 200, Y0 + 200)], crs=CRS)
@@ -117,7 +117,7 @@ def test_default_visibility(fmap):
 
 
 def test_disclaimer_and_legend_present(html_text):
-    for fragment in ("© OpenStreetMap contributors (ODbL)", "© ABS (CC BY 4.0)", "NOT Evoenergy network data",
+    for fragment in ("© OpenStreetMap contributors (ODbL)", "© ABS (CC BY 4.0)", "NOT official network operator data",
                      "OSM power data is incomplete", "rough geometric estimates, not feeder boundaries"):
         assert fragment in html_text
     assert "act-legend" in html_text and "act-disclaimer" in html_text
@@ -374,7 +374,7 @@ def test_build_summary_and_markdown():
     assert s["quality_issues"]["by_group"]["likely_error"] == 2
     assert s["feeder"] is None and s["transformers"]["total"] == 5
     md = build.render_markdown(s)
-    assert "2026-01-02" in md and "NOT Evoenergy network data" in md
+    assert "2026-01-02" in md and "NOT official network operator data" in md
     assert "km inside the ACT" in md and "Whole mapped ways incl. NSW sections" in md
     assert "Headline: 1.6 km of mapped line inside the ACT" in md
     assert "Substation bays and busbars" in md and "not an error count" in md
@@ -383,7 +383,7 @@ def test_build_summary_and_markdown():
     assert "Toy 11 kV feeder" not in md  # no feeder results -> section omitted
     s2 = build.build_summary(_lines(), _subs(), 16, d, QUALITY, FEEDER, today=dt.date(2026, 1, 2))
     md2 = build.render_markdown(s2)
-    assert "Toy 11 kV feeder load flow (assumed loads and cable type; not a real Evoenergy feeder study)" in md2
+    assert "Toy 11 kV feeder load flow (assumed loads and cable type; not a real utility feeder study)" in md2
     assert "feeder_results.md" in md2 and "0.986" in md2 and "0.971" in md2 and "3.52x" in md2
     json.dumps(s2)  # summary.json must be serialisable
 

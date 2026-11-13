@@ -9,10 +9,10 @@ HONESTY NOTE -- read before quoting any number from here
 The polygons produced here are **rough nearest-substation areas**: every point
 in a polygon is geometrically closer to that zone substation than to any other
 zone substation (a Voronoi diagram, clipped to the ACT boundary). They are a
-geometric estimate only. They are NOT real feeder boundaries, NOT Evoenergy's
-supply areas, and they ignore the actual line routes, switching arrangements,
+geometric estimate only. They are NOT real feeder boundaries, NOT any
+operator's supply areas, and they ignore the actual line routes, switching arrangements,
 capacity and load. The data is public OpenStreetMap (c) OpenStreetMap
-contributors (ODbL), NOT Evoenergy's network data, and OSM power mapping is
+contributors (ODbL), NOT official network operator data, and OSM power mapping is
 incomplete (a missing zone substation in OSM silently enlarges its neighbours'
 areas). Suburb boundaries: ABS ASGS 2021 (CC BY 4.0).
 
@@ -69,7 +69,7 @@ SUMMARY_JSON = OUTPUTS_DIR / "service_areas_summary.json"
 AREA_LABEL = "rough nearest-substation area"
 AREA_NOTE = (
     "Rough nearest-substation area: a geometric (Voronoi) estimate from public "
-    "OpenStreetMap data. NOT a real feeder or supply boundary; not Evoenergy data."
+    "OpenStreetMap data. NOT a real feeder or supply boundary; not official network operator data."
 )
 TOP_N = 10
 
@@ -263,7 +263,7 @@ def build_summary(
         "label": AREA_LABEL,
         "disclaimer": AREA_NOTE
         + " Distances are straight-line from a suburb's representative point, not along the network.",
-        "data_source": "Public OpenStreetMap (c) OpenStreetMap contributors (ODbL); suburbs ABS ASGS 2021 (CC BY 4.0). Not Evoenergy network data.",
+        "data_source": "Public OpenStreetMap (c) OpenStreetMap contributors (ODbL); suburbs ABS ASGS 2021 (CC BY 4.0). Not official network operator data.",
         "crs": f"EPSG:{PROJECT_CRS}",
         "counts": {
             "substations_total": int(len(subs)),

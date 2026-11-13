@@ -9,7 +9,7 @@ Each download is skipped if its cache file already exists, unless ``--force``.
 Data provenance and honesty notes
 ---------------------------------
 * The power-network data is **public OpenStreetMap data**. It is NOT
-  Evoenergy's network data, and OSM power mapping is incomplete.
+  official network operator data, and OSM power mapping is incomplete.
   Credit: (c) OpenStreetMap contributors, licensed under the ODbL.
 * Suburb boundaries are ABS ASGS Edition 3 (2021) Suburbs and Localities,
   GDA2020, licensed CC BY 4.0 (c) Australian Bureau of Statistics.
@@ -62,8 +62,17 @@ NETWORK_TAGS = ["line", "minor_line", "cable", "substation", "transformer"]
 SUPPORT_TAGS = ["tower", "pole"]
 
 KEEP_TAGS = [
-    "power", "voltage", "name", "operator", "substation", "cables",
-    "circuits", "frequency", "location", "line", "ref",
+    "power",
+    "voltage",
+    "name",
+    "operator",
+    "substation",
+    "cables",
+    "circuits",
+    "frequency",
+    "location",
+    "line",
+    "ref",
     "transformer",  # pole-top transformers: power=pole + transformer=distribution
 ]
 
@@ -103,7 +112,9 @@ def _stringify(value):
     if value is None:
         return None
     if isinstance(value, (list, tuple, set, dict)):
-        return json.dumps(value, default=str) if isinstance(value, dict) else ";".join(map(str, value))
+        return (
+            json.dumps(value, default=str) if isinstance(value, dict) else ";".join(map(str, value))
+        )
     return value
 
 
@@ -137,8 +148,15 @@ def fetch_boundary(force: bool = False) -> Path:
     ox = _setup_osmnx()
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     gdf = ox.geocode_to_gdf(PLACE).to_crs(4326)
-    gdf = gdf.drop(columns=[c for c in gdf.columns if gdf[c].dtype == object and c != "geometry"
-                            and gdf[c].map(lambda v: isinstance(v, (list, dict))).any()])
+    gdf = gdf.drop(
+        columns=[
+            c
+            for c in gdf.columns
+            if gdf[c].dtype == object
+            and c != "geometry"
+            and gdf[c].map(lambda v: isinstance(v, (list, dict))).any()
+        ]
+    )
     gdf.to_file(BOUNDARY_PATH, layer=BOUNDARY_LAYER, driver="GPKG")
     print(f"[downloaded] {BOUNDARY_PATH.name}: {len(gdf)} feature(s)")
     return BOUNDARY_PATH
@@ -153,8 +171,11 @@ def _with_retries(fn, attempts: int = 5, wait: float = 30.0):
             if i == attempts - 1:
                 raise
             delay = wait * 2**i
-            print(f"[retry]      {type(exc).__name__}: {str(exc).splitlines()[0][:120]} "
-                  f"- waiting {delay:.0f}s (attempt {i + 2}/{attempts})", file=sys.stderr)
+            print(
+                f"[retry]      {type(exc).__name__}: {str(exc).splitlines()[0][:120]} "
+                f"- waiting {delay:.0f}s (attempt {i + 2}/{attempts})",
+                file=sys.stderr,
+            )
             time.sleep(delay)
 
 
@@ -167,8 +188,10 @@ def _fetch_power_group(tags: list[str], path: Path, layer: str, force: bool) -> 
     raw = _with_retries(lambda: ox.features.features_from_place(PLACE, tags={"power": tags}))
     gdf = tidy_osm_features(raw)
     gdf.to_file(path, layer=layer, driver="GPKG")
-    print(f"[downloaded] {path.name}: {len(gdf)} features "
-          f"({gdf.geometry.geom_type.value_counts().to_dict()})")
+    print(
+        f"[downloaded] {path.name}: {len(gdf)} features "
+        f"({gdf.geometry.geom_type.value_counts().to_dict()})"
+    )
     return path
 
 
@@ -194,7 +217,7 @@ def fetch_power(force: bool = False) -> list[Path]:
 
 def _download(url: str, dest: Path) -> None:
     tmp = dest.with_suffix(dest.suffix + ".part")
-    with requests.get(url, stream=True, timeout=120, headers={"User-Agent": "Mozilla/5.0 " + USER_AGENT}) as r:
+    with requests.get(url, stream=True, timeout=120, headers={"User-Agent": "" + USER_AGENT}) as r:
         r.raise_for_status()
         total = int(r.headers.get("content-length", 0))
         done = 0
@@ -202,7 +225,10 @@ def _download(url: str, dest: Path) -> None:
             for chunk in r.iter_content(chunk_size=1 << 20):
                 f.write(chunk)
                 done += len(chunk)
-        print(f"[downloaded] {dest.name}: {done / 1e6:.1f} MB" + (f" (expected {total / 1e6:.1f} MB)" if total else ""))
+        print(
+            f"[downloaded] {dest.name}: {done / 1e6:.1f} MB"
+            + (f" (expected {total / 1e6:.1f} MB)" if total else "")
+        )
     tmp.replace(dest)
 
 
@@ -219,7 +245,9 @@ def fetch_suburbs(force: bool = False) -> Path:
     else:
         print(f"[skip]       {SAL_ZIP_PATH.name} already downloaded")
     gdf = gpd.read_file(f"zip://{SAL_ZIP_PATH}")
-    print(f"             SAL columns: {list(gdf.columns)}; {len(gdf)} rows Australia-wide; CRS {gdf.crs}")
+    print(
+        f"             SAL columns: {list(gdf.columns)}; {len(gdf)} rows Australia-wide; CRS {gdf.crs}"
+    )
     gdf = gdf[gdf["STE_CODE21"].astype(str) == "8"]
     gdf = gdf[~(gdf.geometry.isna() | gdf.geometry.is_empty)].reset_index(drop=True)
     gdf.to_file(SUBURBS_PATH, layer=SUBURBS_LAYER, driver="GPKG")
@@ -231,8 +259,10 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Fetch and cache ACT OSM + ABS data into data/raw/")
     p.add_argument("--force", action="store_true", help="re-download even if cache files exist")
     args = p.parse_args(argv)
-    print("Data: (c) OpenStreetMap contributors (ODbL); ABS ASGS (CC BY 4.0). "
-          "Public OSM data - not Evoenergy network data; OSM is incomplete.")
+    print(
+        "Data: (c) OpenStreetMap contributors (ODbL); ABS ASGS (CC BY 4.0). "
+        "Public OSM data - not official network operator data; OSM is incomplete."
+    )
     steps = (("boundary", fetch_boundary), ("power", fetch_power), ("suburbs", fetch_suburbs))
     failed = []
     for name, fn in steps:

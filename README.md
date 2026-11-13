@@ -2,7 +2,7 @@
 
 This project maps the ACT's electricity network from public OpenStreetMap data, using open-source GIS tools. It uses Python (GeoPandas, shapely, networkx, folium) and QGIS for viewing. It checks the network for connectivity and data-quality problems, estimates rough nearest-substation areas, and runs a toy pandapower load flow on one 11 kV path. It was built as a self-directed project to learn how GIS is used to manage an electricity distribution network.
 
-**This uses public OpenStreetMap data. It is not Evoenergy's network data, and OSM power data is incomplete.**
+**This uses public OpenStreetMap data. It is not official network operator data, and OSM power data is incomplete.**
 
 ## Screenshots
 
@@ -128,7 +128,7 @@ diagnostics to address them as you work; these commands do not change files.
 - Zone substations are chosen by voltage (≥66 kV stepping down to <66 kV), because OSM's `substation=` tag is unreliable.
 - Lengths are clipped to the ACT boundary.
 
-## Toy model: assumed loads and cable type; not a real Evoenergy feeder study
+## Toy model: assumed loads and cable type; not a real utility feeder study
 
 The model starts at Fyshwick Zone Substation and follows the longest 11 kV path through the OSM data. That path is 8.47 km long. Only the trunk is modelled, so branches are ignored. The route and section lengths come from OSM. Every electrical value is assumed: a 1.00 pu ideal source, nine 200 kW loads at 0.95 power factor, and one standard pandapower cable type. The model runs `pp.runpp` and reports the end-of-feeder voltage and line loading, at base load and with the load doubled.
 
@@ -136,7 +136,7 @@ Assumptions (copied from [outputs/feeder_results.md](outputs/feeder_results.md))
 
 | # | Assumption | Value | Basis / caveat |
 |---:|---|---|---|
-| 1 | Model status | Toy model | Assumed loads and cable type; not an Evoenergy feeder study and not Evoenergy data. |
+| 1 | Model status | Toy model | Assumed loads and cable type; not a real utility feeder study and not official network data. |
 | 2 | Route and section lengths | OpenStreetMap 11 kV ways | Lengths measured on the OSM geometry in GDA2020 / MGA zone 55 (EPSG:7855). OSM is incomplete and may not match the real feeder route or switching. |
 | 3 | Path selection rule | Longest shortest 11 kV path from a zone substation | From each zone substation, follow only line edges whose voltage tag includes 11000 V (other substations are barriers); take the node with the longest shortest-path distance (by GIS length) from the substation; across substations keep the longest (ties: smaller node id / substation OSM id). |
 | 4 | Section merging | sections < 200 m merged | Very short OSM sections joined to the previous one (first one to the next) so the model has a readable number of buses. Total length unchanged. |
@@ -150,7 +150,7 @@ Assumptions (copied from [outputs/feeder_results.md](outputs/feeder_results.md))
 | 12 | Load placement | one load at every bus except the source (9 loads) | Assumed: one load at the far end of each (merged) section. |
 | 13 | Load model | constant power (PQ), balanced 3-phase | Positive-sequence load flow (pp.runpp, Newton-Raphson); no unbalance, no voltage dependence. |
 | 14 | Doubled-load case | all loads x2 | Uniform scaling of every load. |
-| 15 | Voltage planning reference | ±6 % (0.94–1.06 pu) | Typical-practice reference only, not Evoenergy's standard. In practice the 11 kV network gets only part of the end-to-end voltage budget (the LV network and distribution transformer also drop voltage). |
+| 15 | Voltage planning reference | ±6 % (0.94–1.06 pu) | Typical-practice reference only, not any network operator's standard. In practice the 11 kV network gets only part of the end-to-end voltage budget (the LV network and distribution transformer also drop voltage). |
 | 16 | Thermal reference | 100 % of the std-type max_i_ka | pandapower's rating for that cable under its reference installation conditions; no derating. |
 
 Results (toy model):

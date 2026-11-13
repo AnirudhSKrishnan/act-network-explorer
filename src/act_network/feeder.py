@@ -3,7 +3,7 @@
 **This is a toy model.** The route and the section lengths come from public
 OpenStreetMap data (lengths measured in GDA2020 / MGA zone 55, EPSG:7855). The
 cable type, the loads, the power factor and the source voltage are all
-*assumptions* (see :data:`ASSUMPTIONS`). It is not an Evoenergy feeder study
+*assumptions* (see :data:`ASSUMPTIONS`). It is not a real utility feeder study
 and says nothing about how the real feeder is loaded or built.
 
 Pipeline (``python -m act_network.feeder``)
@@ -66,12 +66,12 @@ LOAD_KW = 200.0
 POWER_FACTOR = 0.95  # lagging
 SOURCE_VM_PU = 1.0
 MIN_SECTION_M = 200.0  # sections shorter than this are merged into a neighbour
-V_MIN_PU = 0.94  # typical-practice -6 % planning reference (NOT Evoenergy's standard)
+V_MIN_PU = 0.94  # typical-practice -6 % planning reference (NOT any network operator's standard)
 V_MAX_PU = 1.06
 LOADING_LIMIT_PCT = 100.0
 DOUBLED = 2.0
 
-TOY_HEADER = "Toy model — assumed loads and cable type; not a real Evoenergy feeder study"
+TOY_HEADER = "Toy model — assumed loads and cable type; not a real utility feeder study"
 
 SELECTION_RULE = (
     "From each zone substation, follow only line edges whose voltage tag includes 11000 V "
@@ -349,7 +349,7 @@ def assumptions(n_loads: int, std: dict) -> list[dict]:
     q = q_kvar_for(LOAD_KW, POWER_FACTOR)
     return [
         {"item": "Model status", "value": "Toy model",
-         "basis": "Assumed loads and cable type; not an Evoenergy feeder study and not Evoenergy data."},
+         "basis": "Assumed loads and cable type; not a real utility feeder study and not official network data."},
         {"item": "Route and section lengths", "value": "OpenStreetMap 11 kV ways",
          "basis": "Lengths measured on the OSM geometry in GDA2020 / MGA zone 55 (EPSG:7855). "
                   "OSM is incomplete and may not match the real feeder route or switching."},
@@ -385,7 +385,7 @@ def assumptions(n_loads: int, std: dict) -> list[dict]:
          "basis": "Positive-sequence load flow (pp.runpp, Newton-Raphson); no unbalance, no voltage dependence."},
         {"item": "Doubled-load case", "value": f"all loads x{DOUBLED:g}", "basis": "Uniform scaling of every load."},
         {"item": "Voltage planning reference", "value": f"±6 % ({V_MIN_PU}–{V_MAX_PU} pu)",
-         "basis": "Typical-practice reference only, not Evoenergy's standard. In practice the 11 kV "
+         "basis": "Typical-practice reference only, not any network operator's standard. In practice the 11 kV "
                   "network gets only part of the end-to-end voltage budget (the LV network and "
                   "distribution transformer also drop voltage)."},
         {"item": "Thermal reference", "value": f"{LOADING_LIMIT_PCT:.0f} % of the std-type max_i_ka",
@@ -417,7 +417,7 @@ def plot_profile(base: dict, doubled: dict, path: Path, title: str) -> None:
         ax.annotate(f"{y[-1]:.3f} pu", (x[-1], y[-1]), xytext=(6, 0), textcoords="offset points",
                     va="center", fontsize=8.5, color=ink)
     ax.axhline(V_MIN_PU, color=muted, lw=1.2, ls=(0, (5, 4)), zorder=2)
-    ax.text(0.02, V_MIN_PU + 0.0012, f"{V_MIN_PU} pu: −6 % typical-practice reference (not Evoenergy's)",
+    ax.text(0.02, V_MIN_PU + 0.0012, f"{V_MIN_PU} pu: −6 % typical-practice reference (not any operator's)",
             transform=ax.get_yaxis_transform(), fontsize=8, color=muted, va="bottom")
     lo = min(V_MIN_PU, min(doubled["bus_vm_pu"])) - 0.01
     ax.set_ylim(lo, 1.005)
@@ -437,7 +437,7 @@ def plot_profile(base: dict, doubled: dict, path: Path, title: str) -> None:
     for t in leg.get_texts():
         t.set_color(ink)
     fig.text(0.01, 0.01, f"Toy model: assumed loads ({LOAD_KW:.0f} kW, {POWER_FACTOR} PF lagging) and cable type; "
-             "route/lengths from OpenStreetMap. Not Evoenergy data.", fontsize=7, color=muted)
+             "route/lengths from OpenStreetMap. Not official network data.", fontsize=7, color=muted)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig.savefig(path, facecolor=surface)
     plt.close(fig)
@@ -617,7 +617,7 @@ def main() -> int:
     }
     out = {
         "title": TOY_HEADER,
-        "data_source": "OpenStreetMap (© OpenStreetMap contributors, ODbL); not Evoenergy data",
+        "data_source": "OpenStreetMap (© OpenStreetMap contributors, ODbL); not official network operator data",
         "path": path_info,
         "model": {"std_type": CABLE_STD_TYPE, "std_type_params": std, "vn_kv": VN_KV,
                   "source_vm_pu": SOURCE_VM_PU, "load_kw": LOAD_KW, "power_factor": POWER_FACTOR,
@@ -626,7 +626,7 @@ def main() -> int:
         "assumptions": assumptions(n_loads, std),
         "reference_limits": {"v_min_pu": V_MIN_PU, "v_max_pu": V_MAX_PU,
                              "loading_limit_pct": LOADING_LIMIT_PCT,
-                             "note": "typical-practice references, not Evoenergy's standards"},
+                             "note": "typical-practice references, not any network operator's standards"},
         "results": {"base": base, "doubled": doubled},
         "limits": {"voltage_multiplier": v_mult, "thermal_multiplier": t_mult, "binding": binding,
                    "search_range": [1.0, 20.0], "tolerance": 0.01},

@@ -1,7 +1,7 @@
 {
   "label": "rough nearest-substation area",
-  "disclaimer": "Rough nearest-substation area: a geometric (Voronoi) estimate from public OpenStreetMap data. NOT a real feeder or supply boundary; not Evoenergy data. Distances are straight-line from a suburb's representative point, not along the network.",
-  "data_source": "Public OpenStreetMap (c) OpenStreetMap contributors (ODbL); suburbs ABS ASGS 2021 (CC BY 4.0). Not Evoenergy network data.",
+  "disclaimer": "Rough nearest-substation area: a geometric (Voronoi) estimate from public OpenStreetMap data. NOT a real feeder or supply boundary; not official network operator data. Distances are straight-line from a suburb's representative point, not along the network.",
+  "data_source": "Public OpenStreetMap (c) OpenStreetMap contributors (ODbL); suburbs ABS ASGS 2021 (CC BY 4.0). Not official network operator data.",
   "crs": "EPSG:7855",
   "counts": {
     "substations_total": 59,

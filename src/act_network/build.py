@@ -13,7 +13,7 @@ numbers for the resume. Every number is computed from the processed data and
 the check outputs; none is typed by hand.
 
 Data provenance: public OpenStreetMap data (c) OpenStreetMap contributors
-(ODbL); suburbs (c) ABS (CC BY 4.0). NOT Evoenergy network data.
+(ODbL); suburbs (c) ABS (CC BY 4.0). NOT official network operator data.
 """
 
 from __future__ import annotations
@@ -266,7 +266,7 @@ def render_markdown(s: dict) -> str:
         f"> {s['data_note']}",
         "",
         "Every figure below is computed by `python -m act_network.build` from the processed data and check "
-        "outputs. Nothing here is Evoenergy data, and OSM coverage is incomplete, so these are counts of what "
+        "outputs. Nothing here is official network operator data, and OSM coverage is incomplete, so these are counts of what "
         "is mapped in OpenStreetMap, not of the real network.",
         "",
         "## Line length",
@@ -385,7 +385,7 @@ def render_markdown(s: dict) -> str:
     if f:
         b, d = f["base"], f.get("doubled")
         md += [
-            "## Toy 11 kV feeder load flow (assumed loads and cable type; not a real Evoenergy feeder study)",
+            "## Toy 11 kV feeder load flow (assumed loads and cable type; not a real utility feeder study)",
             "",
             "A pandapower toy model on one 11 kV path taken from the OSM data. Route and lengths come from "
             "OpenStreetMap; every electrical parameter is assumed (see the assumptions table in "
@@ -417,7 +417,7 @@ def render_markdown(s: dict) -> str:
                f"voltage below {_fmt(f.get('v_min_pu_reference'))} pu at **{_fmt(f.get('voltage_limit_multiplier'), '.2f')}x**; "
                f"cable loading above {_fmt(f.get('loading_limit_pct_reference'), '.0f')} % of rating at "
                f"**{_fmt(f.get('thermal_limit_multiplier'), '.2f')}x**. Binding limit: {f.get('binding_limit') or 'n/a'}. "
-               "The limits are typical-practice references, not Evoenergy's standards.",
+               "The limits are typical-practice references, not any network operator's standards.",
                ""]
     return "\n".join(md)
 

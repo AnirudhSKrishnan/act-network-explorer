@@ -1,5 +1,5 @@
 {
-  "data_note": "Public OpenStreetMap data, not Evoenergy's network data; OSM power data is incomplete. \u00a9 OpenStreetMap contributors, ODbL.",
+  "data_note": "Public OpenStreetMap data, not official network operator data; OSM power data is incomplete. \u00a9 OpenStreetMap contributors, ODbL.",
   "params": {
     "tol_m": 5.0,
     "sub_tol_m": 30.0,
@@ -235,5 +235,5 @@
       "fed_length_share": 0.485
     }
   ],
-  "runtime_s": 2.58
+  "runtime_s": 2.25
 }

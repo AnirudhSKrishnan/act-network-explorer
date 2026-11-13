@@ -1,6 +1,6 @@
 {
-  "title": "Toy model — assumed loads and cable type; not a real Evoenergy feeder study",
-  "data_source": "OpenStreetMap (© OpenStreetMap contributors, ODbL); not Evoenergy data",
+  "title": "Toy model — assumed loads and cable type; not a real utility feeder study",
+  "data_source": "OpenStreetMap (© OpenStreetMap contributors, ODbL); not official network operator data",
   "path": {
     "substation_name": "Fyshwick Zone Substation",
     "substation_osm_id": 344074567,
@@ -360,7 +360,7 @@
     {
       "item": "Model status",
       "value": "Toy model",
-      "basis": "Assumed loads and cable type; not an Evoenergy feeder study and not Evoenergy data."
+      "basis": "Assumed loads and cable type; not a real utility feeder study and not official network data."
     },
     {
       "item": "Route and section lengths",
@@ -430,7 +430,7 @@
     {
       "item": "Voltage planning reference",
       "value": "±6 % (0.94–1.06 pu)",
-      "basis": "Typical-practice reference only, not Evoenergy's standard. In practice the 11 kV network gets only part of the end-to-end voltage budget (the LV network and distribution transformer also drop voltage)."
+      "basis": "Typical-practice reference only, not any network operator's standard. In practice the 11 kV network gets only part of the end-to-end voltage budget (the LV network and distribution transformer also drop voltage)."
     },
     {
       "item": "Thermal reference",
@@ -442,7 +442,7 @@
     "v_min_pu": 0.94,
     "v_max_pu": 1.06,
     "loading_limit_pct": 100.0,
-    "note": "typical-practice references, not Evoenergy's standards"
+    "note": "typical-practice references, not any network operator's standards"
   },
   "results": {
     "base": {

@@ -1,6 +1,7 @@
 """Unit tests for act_network.clean using small synthetic data (no I/O)."""
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 import pytest
 from shapely.geometry import LineString, MultiLineString, Point, box
@@ -106,23 +107,48 @@ def test_clean_lines_columns_and_rules():
 def test_clean_lines_explodes_multilinestrings_and_normalises_operator():
     multi = MultiLineString([_line(), _line(0.02)])
     raw = _raw_network([
-        {"power": "line", "voltage": "132000", "operator": "ActewAGL", "geometry": multi},
-        {"power": "line", "voltage": "330000", "operator": "Transgrid", "geometry": _line()},
+        {"power": "line", "voltage": "132000", "operator": "NORTHGRID", "geometry": multi},
+        {"power": "line", "voltage": "330000", "operator": "Southpower", "geometry": _line()},
     ])
     out = clean.clean_lines(raw)
     assert len(out) == 3
     assert set(out.geom_type) == {"LineString"}
     assert out["osm_id"].tolist() == [1, 1, 2]
-    assert out["operator"].tolist() == ["Evoenergy", "Evoenergy", "TransGrid"]
+    assert out["operator"].tolist() == ["NORTHGRID", "NORTHGRID", "Southpower"]
 
 
-@pytest.mark.parametrize("raw, expected", [
-    ("Evoenergy", "Evoenergy"), ("evoenergy", "Evoenergy"), ("ActewAGL", "Evoenergy"),
-    ("ACTEWAGL", "Evoenergy"), ("TransGrid", "TransGrid"), ("Transgrid", "TransGrid"),
-    ("Essential Energy", "Essential Energy"), (None, None), ("", None),
-])
-def test_normalise_operator(raw, expected):
-    assert clean.normalise_operator(raw) == expected
+def _norm(values):
+    return clean.normalise_operators(pd.Series(values, dtype="object")).tolist()
+
+
+def test_normalise_operators_folds_case_and_whitespace():
+    out = _norm(["Northgrid", "NORTHGRID", " northgrid ", "Southpower", "southpower"])
+    # one canonical spelling per case-insensitive group (all tied here -> alphabetical)
+    assert out == ["NORTHGRID"] * 3 + ["Southpower"] * 2
+
+
+def test_normalise_operators_picks_most_frequent_spelling():
+    out = _norm(["northgrid", "Northgrid", "Northgrid", "NORTHGRID", "northgrid", "Northgrid"])
+    assert out == ["Northgrid"] * 6  # 3x "Northgrid" beats 2x "northgrid" and 1x "NORTHGRID"
+
+
+def test_normalise_operators_ties_broken_alphabetically():
+    out = _norm(["northgrid", "NorthGrid", "NORTHGRID", "northgrid", "NorthGrid", "NORTHGRID"])
+    assert out == ["NORTHGRID"] * 6  # 2/2/2 -> alphabetical (uppercase sorts first)
+
+
+def test_normalise_operators_keeps_distinct_names_and_blanks():
+    out = _norm(["Essential Energy", "Northgrid Pty", "Northgrid", None, "", "  ", np.nan])
+    assert out == ["Essential Energy", "Northgrid Pty", "Northgrid", None, None, None, None]
+    # former-name aliases are deliberately not merged (would need a hard-coded company list)
+    assert _norm(["Northgrid", "OldNorthgrid"]) == ["Northgrid", "OldNorthgrid"]
+
+
+def test_normalise_operators_empty_and_index_preserved():
+    assert _norm([]) == []
+    s = pd.Series(["a", "A", "A"], index=[5, 5, 7], dtype="object")
+    out = clean.normalise_operators(s)
+    assert out.tolist() == ["A", "A", "A"] and out.index.tolist() == [5, 5, 7]
 
 
 # ---- substations -----------------------------------------------------------
@@ -197,12 +223,12 @@ def test_duplicate_substations_not_dropped():
 
 def test_transformers_supports_boundary():
     raw = _raw_network([
-        {"power": "transformer", "operator": "ACTEWAGL", "geometry": Point(LON, LAT)},
+        {"power": "transformer", "operator": "SOUTHPOWER", "geometry": Point(LON, LAT)},
         {"power": "line", "geometry": _line()},
     ])
     tr = clean.clean_transformers(raw)
     assert list(tr.columns) == ["osm_id", "element", "name", "operator", "source", "geometry"]
-    assert len(tr) == 1 and tr["operator"].iloc[0] == "Evoenergy"
+    assert len(tr) == 1 and tr["operator"].iloc[0] == "SOUTHPOWER"
     assert tr["source"].tolist() == ["power=transformer"]
 
     sup = gpd.GeoDataFrame({"osm_id": [1, 2], "power": ["pole", "tower"]},
@@ -251,13 +277,13 @@ def test_pole_top_transformers_join_transformers_layer():
     raw = _raw_network([{"power": "transformer", "geometry": Point(LON, LAT)}])
     sup = gpd.GeoDataFrame(
         {"element": "node", "osm_id": [11, 12, 13], "power": ["pole", "pole", "tower"],
-         "operator": ["evoenergy", None, None], "transformer": ["distribution", None, None]},
+         "operator": ["northgrid", None, None], "transformer": ["distribution", None, None]},
         geometry=[Point(LON + 0.01, LAT), Point(LON + 0.02, LAT), Point(LON + 0.03, LAT)], crs=4326)
     tr = clean.clean_transformers(raw, sup)
     assert tr["osm_id"].tolist() == [1, 11]  # untagged pole and tower excluded
     assert tr["source"].tolist() == ["power=transformer", "pole transformer tag"]
     assert tr["element"].tolist() == ["way", "node"]
-    assert tr["operator"].iloc[1] == "Evoenergy"
+    assert tr["operator"].iloc[1] == "northgrid"
     assert tr.crs.to_epsg() == 7855 and set(tr.geom_type) == {"Point"}
     # supports without a transformer column (older raw cache) add nothing
     assert len(clean.clean_transformers(raw, sup.drop(columns="transformer"))) == 1

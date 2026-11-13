@@ -20,3 +20,6 @@ data/processed/*
 !data/raw/act_suburbs.gpkg
 !data/raw/osm_power_network.gpkg
 !data/raw/osm_power_supports.gpkg
+
+# Personal project brief (application notes) - keep local only
+ACT_Network_Explorer_Brief.md

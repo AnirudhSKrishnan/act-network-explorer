@@ -224,7 +224,7 @@ def test_build_issues_and_outputs(tmp_path):
     assert summary["issues"]["total_rows"] == len(issues)
     json.dumps(summary, default=str)  # serialisable
     md = report.render_markdown(summary, issues)
-    assert "not Evoenergy" in md and "OpenStreetMap contributors" in md
+    assert "not official network operator data" in md and "OpenStreetMap contributors" in md
 
 
 def test_run_writes_all_outputs(tmp_path):

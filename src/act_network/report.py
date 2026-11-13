@@ -29,7 +29,7 @@ Issue groups (so a raw count is never mistaken for an error count):
 * ``tag_gap`` -- lines with no usable voltage tag.
 
 Data: public OpenStreetMap data (c) OpenStreetMap contributors (ODbL) -- NOT
-Evoenergy's network data; OSM power mapping is incomplete.
+official network operator data; OSM power mapping is incomplete.
 """
 
 from __future__ import annotations
@@ -78,7 +78,7 @@ OVERLAP_MIN_FRAC = 0.5  # ... which is at least half of the shorter line
 FOOTPRINT_NEST_FRAC = 0.5  # substation footprints overlapping by >= 50% of the smaller
 
 DATA_NOTE = (
-    "Public OpenStreetMap data, not Evoenergy's network data; OSM power data is "
+    "Public OpenStreetMap data, not official network operator data; OSM power data is "
     "incomplete. © OpenStreetMap contributors, ODbL."
 )
 
