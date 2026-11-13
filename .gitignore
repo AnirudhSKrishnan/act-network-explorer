@@ -5,8 +5,10 @@ __pycache__/
 build/
 dist/
 .pytest_cache/
+.ruff_cache/
+.nvimlog
 .DS_Store
-
+docs
 data/raw/*
 !data/raw/.gitkeep
 data/processed/*
