@@ -1,0 +1,569 @@
+{
+  "title": "Toy model — assumed loads and cable type; not a real Evoenergy feeder study",
+  "data_source": "OpenStreetMap (© OpenStreetMap contributors, ODbL); not Evoenergy data",
+  "path": {
+    "substation_name": "Fyshwick Zone Substation",
+    "substation_osm_id": 344074567,
+    "substation_voltages": "66000;11000",
+    "fallback": false,
+    "selection_rule": "From each zone substation, follow only line edges whose voltage tag includes 11000 V (other substations are barriers); take the node with the longest shortest-path distance (by GIS length) from the substation; across substations keep the longest (ties: smaller node id / substation OSM id).",
+    "n_zone_substations": 17,
+    "n_zone_substations_with_11kv": 2,
+    "zone_substations_with_11kv": [
+      "sub:166192455",
+      "sub:344074567"
+    ],
+    "total_length_m": 8468.386810600063,
+    "reachable_11kv_length_m": 14727.904087406494,
+    "n_lines_without_voltage": 626,
+    "n_osm_sections": 13,
+    "n_model_sections": 9,
+    "n_buses": 10,
+    "osm_way_ids": [
+      1290585238,
+      1290585239,
+      785063811,
+      785063816,
+      782997752,
+      782976036
+    ],
+    "osm_sections": [
+      {
+        "osm_id": 1290585238,
+        "line_idx": 5156,
+        "voltages": "11000",
+        "length_m": 201.75995180970227,
+        "power": "minor_line",
+        "from_node": 6809,
+        "to_node": 6808
+      },
+      {
+        "osm_id": 1290585239,
+        "line_idx": 5157,
+        "voltages": "11000",
+        "length_m": 124.48285888444204,
+        "power": "cable",
+        "from_node": 6808,
+        "to_node": 667
+      },
+      {
+        "osm_id": 785063811,
+        "line_idx": 492,
+        "voltages": "11000",
+        "length_m": 2283.2927905718543,
+        "power": "minor_line",
+        "from_node": 667,
+        "to_node": 6514
+      },
+      {
+        "osm_id": 785063811,
+        "line_idx": 492,
+        "voltages": "11000",
+        "length_m": 395.96477070633756,
+        "power": "minor_line",
+        "from_node": 6514,
+        "to_node": 666
+      },
+      {
+        "osm_id": 785063816,
+        "line_idx": 495,
+        "voltages": "11000",
+        "length_m": 676.7756252529047,
+        "power": "line",
+        "from_node": 666,
+        "to_node": 2985
+      },
+      {
+        "osm_id": 785063816,
+        "line_idx": 495,
+        "voltages": "11000",
+        "length_m": 929.2876658641867,
+        "power": "line",
+        "from_node": 2985,
+        "to_node": 668
+      },
+      {
+        "osm_id": 785063816,
+        "line_idx": 495,
+        "voltages": "11000",
+        "length_m": 113.41021254641396,
+        "power": "line",
+        "from_node": 668,
+        "to_node": 670
+      },
+      {
+        "osm_id": 785063816,
+        "line_idx": 495,
+        "voltages": "11000",
+        "length_m": 1382.9166891781642,
+        "power": "line",
+        "from_node": 670,
+        "to_node": "tx:7334695235"
+      },
+      {
+        "osm_id": 785063816,
+        "line_idx": 495,
+        "voltages": "11000",
+        "length_m": 462.39292679581513,
+        "power": "line",
+        "from_node": "tx:7334695235",
+        "to_node": 6516
+      },
+      {
+        "osm_id": 785063816,
+        "line_idx": 495,
+        "voltages": "11000",
+        "length_m": 78.73499321404597,
+        "power": "line",
+        "from_node": 6516,
+        "to_node": 661
+      },
+      {
+        "osm_id": 782997752,
+        "line_idx": 489,
+        "voltages": "11000",
+        "length_m": 562.9465125041288,
+        "power": "line",
+        "from_node": 661,
+        "to_node": 6518
+      },
+      {
+        "osm_id": 782997752,
+        "line_idx": 489,
+        "voltages": "11000",
+        "length_m": 178.16149414462825,
+        "power": "line",
+        "from_node": 6518,
+        "to_node": 660
+      },
+      {
+        "osm_id": 782976036,
+        "line_idx": 488,
+        "voltages": "11000",
+        "length_m": 1078.2603191274395,
+        "power": "minor_line",
+        "from_node": 660,
+        "to_node": 658
+      }
+    ],
+    "model_sections": [
+      {
+        "section": 1,
+        "length_m": 326.2428106941443,
+        "osm_ids": [
+          1290585238,
+          1290585239
+        ],
+        "power": [
+          "minor_line",
+          "cable"
+        ],
+        "osm_section_indices": [
+          0,
+          1
+        ]
+      },
+      {
+        "section": 2,
+        "length_m": 2283.2927905718543,
+        "osm_ids": [
+          785063811
+        ],
+        "power": [
+          "minor_line"
+        ],
+        "osm_section_indices": [
+          2
+        ]
+      },
+      {
+        "section": 3,
+        "length_m": 395.96477070633756,
+        "osm_ids": [
+          785063811
+        ],
+        "power": [
+          "minor_line"
+        ],
+        "osm_section_indices": [
+          3
+        ]
+      },
+      {
+        "section": 4,
+        "length_m": 676.7756252529047,
+        "osm_ids": [
+          785063816
+        ],
+        "power": [
+          "line"
+        ],
+        "osm_section_indices": [
+          4
+        ]
+      },
+      {
+        "section": 5,
+        "length_m": 1042.6978784106007,
+        "osm_ids": [
+          785063816
+        ],
+        "power": [
+          "line"
+        ],
+        "osm_section_indices": [
+          5,
+          6
+        ]
+      },
+      {
+        "section": 6,
+        "length_m": 1382.9166891781642,
+        "osm_ids": [
+          785063816
+        ],
+        "power": [
+          "line"
+        ],
+        "osm_section_indices": [
+          7
+        ]
+      },
+      {
+        "section": 7,
+        "length_m": 541.1279200098611,
+        "osm_ids": [
+          785063816
+        ],
+        "power": [
+          "line"
+        ],
+        "osm_section_indices": [
+          8,
+          9
+        ]
+      },
+      {
+        "section": 8,
+        "length_m": 741.108006648757,
+        "osm_ids": [
+          782997752
+        ],
+        "power": [
+          "line"
+        ],
+        "osm_section_indices": [
+          10,
+          11
+        ]
+      },
+      {
+        "section": 9,
+        "length_m": 1078.2603191274395,
+        "osm_ids": [
+          782976036
+        ],
+        "power": [
+          "minor_line"
+        ],
+        "osm_section_indices": [
+          12
+        ]
+      }
+    ],
+    "branch_nodes": [
+      6514,
+      666,
+      2985,
+      668,
+      670,
+      6516,
+      6518,
+      660
+    ],
+    "bus_xy_epsg7855": [
+      [
+        698239.081946435,
+        6088052.403616326
+      ],
+      [
+        698179.2829411852,
+        6087772.767300136
+      ],
+      [
+        699900.1648081768,
+        6086671.643733865
+      ],
+      [
+        700250.8699197812,
+        6086852.2299175095
+      ],
+      [
+        700709.264206845,
+        6087209.786990365
+      ],
+      [
+        701639.6711679521,
+        6087402.522330897
+      ],
+      [
+        702736.1897702033,
+        6088139.608865206
+      ],
+      [
+        703065.8023904406,
+        6088470.067021966
+      ],
+      [
+        703634.326759362,
+        6088711.518363297
+      ],
+      [
+        704421.3535296887,
+        6088981.55128622
+      ]
+    ],
+    "crs": "EPSG:7855"
+  },
+  "model": {
+    "std_type": "NA2XS2Y 1x185 RM/25 12/20 kV",
+    "std_type_params": {
+      "c_nf_per_km": 273,
+      "r_ohm_per_km": 0.161,
+      "x_ohm_per_km": 0.117,
+      "max_i_ka": 0.362,
+      "type": "cs",
+      "q_mm2": 185,
+      "alpha": 0.00403,
+      "voltage_rating": "MV"
+    },
+    "vn_kv": 11.0,
+    "source_vm_pu": 1.0,
+    "load_kw": 200.0,
+    "power_factor": 0.95,
+    "load_kvar": 65.73682103577264,
+    "n_loads": 9,
+    "load_buses": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "pandapower_version": "3.5.6"
+  },
+  "assumptions": [
+    {
+      "item": "Model status",
+      "value": "Toy model",
+      "basis": "Assumed loads and cable type; not an Evoenergy feeder study and not Evoenergy data."
+    },
+    {
+      "item": "Route and section lengths",
+      "value": "OpenStreetMap 11 kV ways",
+      "basis": "Lengths measured on the OSM geometry in GDA2020 / MGA zone 55 (EPSG:7855). OSM is incomplete and may not match the real feeder route or switching."
+    },
+    {
+      "item": "Path selection rule",
+      "value": "Longest shortest 11 kV path from a zone substation",
+      "basis": "From each zone substation, follow only line edges whose voltage tag includes 11000 V (other substations are barriers); take the node with the longest shortest-path distance (by GIS length) from the substation; across substations keep the longest (ties: smaller node id / substation OSM id)."
+    },
+    {
+      "item": "Section merging",
+      "value": "sections < 200 m merged",
+      "basis": "Very short OSM sections joined to the previous one (first one to the next) so the model has a readable number of buses. Total length unchanged."
+    },
+    {
+      "item": "Trunk only",
+      "value": "branches ignored",
+      "basis": "Branches leaving the path and their load are not modelled, so real trunk current would be higher than shown."
+    },
+    {
+      "item": "Source",
+      "value": "ext_grid, 1.00 pu at the zone substation 11 kV bus",
+      "basis": "Assumed stiff source at nominal voltage. Real zone substations regulate the 11 kV bus with tap changers, often above 1.00 pu."
+    },
+    {
+      "item": "Transformer",
+      "value": "not modelled",
+      "basis": "No 132(66)/11 kV zone transformer and no 11 kV/415 V distribution transformers; loads sit directly on 11 kV buses."
+    },
+    {
+      "item": "Nominal voltage",
+      "value": "11 kV",
+      "basis": "From the OSM voltage tag."
+    },
+    {
+      "item": "Conductor",
+      "value": "NA2XS2Y 1x185 RM/25 12/20 kV (all sections)",
+      "basis": "pandapower standard type (r = 0.161 Ω/km, x = 0.117 Ω/km, c = 273 nF/km, rating 362 A). Chosen because the project brief suggests it and it ships with pandapower: a common European 185 mm² Al XLPE 12/20 kV cable. Most of this OSM path is overhead (power=line/minor_line, one short power=cable section) and real ACT 11 kV conductors differ; overhead lines have higher reactance, lower capacitance and different ratings."
+    },
+    {
+      "item": "Load size",
+      "value": "200 kW per load",
+      "basis": "Assumed round number, not measured demand."
+    },
+    {
+      "item": "Power factor",
+      "value": "0.95 lagging (65.7 kvar per load)",
+      "basis": "Assumed."
+    },
+    {
+      "item": "Load placement",
+      "value": "one load at every bus except the source (9 loads)",
+      "basis": "Assumed: one load at the far end of each (merged) section."
+    },
+    {
+      "item": "Load model",
+      "value": "constant power (PQ), balanced 3-phase",
+      "basis": "Positive-sequence load flow (pp.runpp, Newton-Raphson); no unbalance, no voltage dependence."
+    },
+    {
+      "item": "Doubled-load case",
+      "value": "all loads x2",
+      "basis": "Uniform scaling of every load."
+    },
+    {
+      "item": "Voltage planning reference",
+      "value": "±6 % (0.94–1.06 pu)",
+      "basis": "Typical-practice reference only, not Evoenergy's standard. In practice the 11 kV network gets only part of the end-to-end voltage budget (the LV network and distribution transformer also drop voltage)."
+    },
+    {
+      "item": "Thermal reference",
+      "value": "100 % of the std-type max_i_ka",
+      "basis": "pandapower's rating for that cable under its reference installation conditions; no derating."
+    }
+  ],
+  "reference_limits": {
+    "v_min_pu": 0.94,
+    "v_max_pu": 1.06,
+    "loading_limit_pct": 100.0,
+    "note": "typical-practice references, not Evoenergy's standards"
+  },
+  "results": {
+    "base": {
+      "converged": true,
+      "load_multiplier": 1.0,
+      "total_load_kw": 1800.0,
+      "total_load_kvar": 591.6313893219537,
+      "end_bus": 9,
+      "end_vm_pu": 0.9860120191589289,
+      "end_voltage_drop_pct": 1.3987980841071113,
+      "min_vm_pu": 0.9860120191589289,
+      "min_vm_bus": 9,
+      "max_vm_pu": 1.0,
+      "max_line_loading_pct": 27.391458417688323,
+      "max_loading_line": 0,
+      "max_line_current_a": 99.15707947203173,
+      "total_losses_kw": 16.105485113745573,
+      "source_p_kw": 1816.1054851141216,
+      "source_q_kvar": 517.0243759405366,
+      "bus_vm_pu": [
+        1.0,
+        0.999048070799791,
+        0.9931121167145298,
+        0.9922093349576219,
+        0.9908877820568492,
+        0.9891900620746868,
+        0.9873831213532803,
+        0.9868516975540497,
+        0.9863667984124869,
+        0.9860120191589289
+      ],
+      "bus_distance_km": [
+        0.0,
+        0.3262428106941443,
+        2.609535601265999,
+        3.0055003719723365,
+        3.6822759972252412,
+        4.7249738756358415,
+        6.107890564814006,
+        6.649018484823866,
+        7.390126491472623,
+        8.468386810600062
+      ],
+      "line_loading_pct": [
+        27.391458417688323,
+        24.433135393006385,
+        21.37782661176639,
+        18.331450446821613,
+        15.296126821735957,
+        12.26997266804001,
+        9.202693245079608,
+        6.142256470582026,
+        3.0957244585887467
+      ],
+      "within_voltage_reference": true,
+      "within_thermal_reference": true
+    },
+    "doubled": {
+      "converged": true,
+      "load_multiplier": 2.0,
+      "total_load_kw": 3600.0,
+      "total_load_kvar": 1183.2627786439075,
+      "end_bus": 9,
+      "end_vm_pu": 0.9712804407840345,
+      "end_voltage_drop_pct": 2.8719559215965473,
+      "min_vm_pu": 0.9712804407840345,
+      "min_vm_bus": 9,
+      "max_vm_pu": 1.0,
+      "max_line_loading_pct": 55.72113144046644,
+      "max_loading_line": 0,
+      "max_line_current_a": 201.71049581448852,
+      "total_losses_kw": 66.83673061366657,
+      "source_p_kw": 3666.8367305894662,
+      "source_q_kvar": 1147.157824305168,
+      "bus_vm_pu": [
+        1.0,
+        0.9980460595921294,
+        0.9858595338362368,
+        0.9840074346194143,
+        0.9812925393761857,
+        0.9778029182741291,
+        0.9740925242062473,
+        0.973002252545477,
+        0.9720067880252247,
+        0.9712804407840345
+      ],
+      "bus_distance_km": [
+        0.0,
+        0.3262428106941443,
+        2.609535601265999,
+        3.0055003719723365,
+        3.6822759972252412,
+        4.7249738756358415,
+        6.107890564814006,
+        6.649018484823866,
+        7.390126491472623,
+        8.468386810600062
+      ],
+      "line_loading_pct": [
+        55.72113144046644,
+        49.70666494325375,
+        43.53238336407712,
+        37.35879118217186,
+        31.18397410287225,
+        25.001801186680577,
+        18.758874410385122,
+        12.517687210787361,
+        6.285355693247897
+      ],
+      "within_voltage_reference": true,
+      "within_thermal_reference": true
+    }
+  },
+  "limits": {
+    "voltage_multiplier": 4.03369140625,
+    "thermal_multiplier": 3.5234375,
+    "binding": "thermal (loading > 100 % of cable rating)",
+    "search_range": [
+      1.0,
+      20.0
+    ],
+    "tolerance": 0.01
+  }
+}

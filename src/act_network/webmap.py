@@ -23,11 +23,14 @@ import folium
 import geopandas as gpd
 import pandas as pd
 import shapely
+from shapely.geometry import LineString, Point
+from shapely.ops import linemerge, substring
 
 from act_network import clean, service_areas
 
 OUTPUTS_DIR = Path(__file__).resolve().parents[2] / "outputs"
 MAP_HTML = OUTPUTS_DIR / "map.html"
+FEEDER_JSON = OUTPUTS_DIR / "feeder_results.json"
 ISSUES_LAYER = "quality_issues"  # topology.gpkg (see report.py)
 TOPOLOGY_PATH = clean.PROCESSED_DIR / "topology.gpkg"
 
@@ -86,6 +89,10 @@ LAYER_NAMES = {
     "check": "Data-quality: to check",
     "tag_gap": "Data-quality: tag gaps (missing voltage)",
 }
+# Optional layer, only present when outputs/feeder_results.json exists (kept out of LAYER_NAMES)
+FEEDER_LAYER_NAME = "Toy feeder path (load-flow model)"
+FEEDER_COLOUR = "#E7298A"
+INTERNAL_WEIGHT = 0.8  # substation bays / busbars are drawn thin
 
 
 # ---------------------------------------------------------------------------
@@ -164,33 +171,46 @@ def _popup_layer(data: dict, style_function, *, name: str, show: bool = True, ma
 
 def line_popups(lines: gpd.GeoDataFrame) -> list[str]:
     out = []
-    for el, oid, power, v, band, op, name, circ, cab, loc, ug, ln in zip(
+    for el, oid, power, v, band, op, name, circ, cab, loc, ug, ln, ln_act, tag, internal in zip(
         _col(lines, "element"), _col(lines, "osm_id"), _col(lines, "power"), _col(lines, "voltage"),
         _col(lines, "voltage_band"), _col(lines, "operator"), _col(lines, "name"),
         _col(lines, "circuits"), _col(lines, "cables"), _col(lines, "location"),
-        _col(lines, "is_underground"), _col(lines, "length_m"),
+        _col(lines, "is_underground"), _col(lines, "length_m"), _col(lines, "length_in_act_m"),
+        _col(lines, "line"), _col(lines, "is_substation_internal"),
     ):
-        rows = [("power", power), ("voltage tag", v if _has(v) else "missing"),
+        is_internal = internal is True or internal == 1
+        if _has(ln_act) and _has(ln) and abs(float(ln) - float(ln_act)) > 1.0:
+            length_rows = [("length inside ACT", f"{ln_act:,.0f} m"),
+                           ("whole mapped way (incl. NSW section)", f"{ln:,.0f} m")]
+        else:
+            length_rows = [("length", f"{ln_act if _has(ln_act) else ln:,.0f} m" if _has(ln_act) or _has(ln) else None)]
+        rows = [("power", power), ("line tag", tag),
+                ("voltage tag", v if _has(v) else "missing"),
                 ("voltage band", band), ("operator", op), ("name", name),
                 ("circuits", circ), ("cables", cab), ("location", loc),
-                ("underground", "yes" if ug is True or ug == 1 else None),
-                ("length", f"{ln:,.0f} m" if _has(ln) else None)]
-        out.append(_popup("Power line / cable", rows, osm_link(el, oid)))
+                ("underground", "yes" if ug is True or ug == 1 else None)] + length_rows
+        title = "Substation bay / busbar (inside a substation site)" if is_internal else "Power line / cable"
+        out.append(_popup(title, rows, osm_link(el, oid)))
     return out
 
 
 def _line_layer(lines: gpd.GeoDataFrame, name: str, *, show: bool = True, dashed: bool = False):
     g = prepare(lines, LINE_TOL_M)
-    g = g.assign(popup=line_popups(g), band=g["voltage_band"].fillna("unknown"))
+    internal = (g["is_substation_internal"].fillna(False).astype(bool)
+                if "is_substation_internal" in g.columns else pd.Series(False, index=g.index))
+    g = g.assign(popup=line_popups(g), band=g["voltage_band"].fillna("unknown"), internal=internal)
 
     def style(f):
         band = f["properties"]["band"]
-        s = {"color": BAND_COLOURS.get(band, "#7F7F7F"), "weight": BAND_WEIGHTS.get(band, 1.5), "opacity": 0.9}
+        thin = f["properties"].get("internal")
+        s = {"color": BAND_COLOURS.get(band, "#7F7F7F"),
+             "weight": INTERNAL_WEIGHT if thin else BAND_WEIGHTS.get(band, 1.5),
+             "opacity": 0.7 if thin else 0.9}
         if dashed:
             s["dashArray"] = "6 4"
         return s
 
-    return _popup_layer(_geojson(g, ["popup", "band"]), style, name=name, show=show, highlight=True)
+    return _popup_layer(_geojson(g, ["popup", "band", "internal"]), style, name=name, show=show, highlight=True)
 
 
 def substation_layer(subs: gpd.GeoDataFrame) -> folium.GeoJson:
@@ -306,6 +326,122 @@ def issue_layer(issues: gpd.GeoDataFrame, name: str, *, show: bool, use_geometry
 
 
 # ---------------------------------------------------------------------------
+# toy feeder layer (from outputs/feeder_results.json)
+# ---------------------------------------------------------------------------
+
+TOY_NOTE = ("TOY MODEL: assumed loads and cable type (pandapower). Route and lengths come from public OSM data. "
+            "Not a real Evoenergy feeder study.")
+
+
+def load_feeder_results(path: Path | None = None) -> dict | None:
+    """Parsed feeder_results.json, or None if missing / unreadable / without a path."""
+    p = Path(path) if path is not None else FEEDER_JSON
+    try:
+        data = json.loads(p.read_text())
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict) or not isinstance(data.get("path"), dict):
+        return None
+    return data if len(data["path"].get("bus_xy_epsg7855") or []) >= 2 else None
+
+
+def _section_geometry(sec: dict, osm_sections: list, lines: gpd.GeoDataFrame | None,
+                      a: tuple, b: tuple) -> LineString:
+    """Section geometry in EPSG:7855: the OSM way geometry between the two buses if it can be
+    recovered reliably, otherwise the straight chord between the buses."""
+    chord = LineString([a, b])
+    if lines is None or "geometry" not in lines.columns:
+        return chord
+    geoms = []
+    for i in sec.get("osm_section_indices") or []:
+        try:
+            o = osm_sections[i]
+            li, oid = int(o["line_idx"]), int(o["osm_id"])
+            if 0 <= li < len(lines) and int(lines["osm_id"].iat[li]) == oid:
+                geoms.append(lines.geometry.iat[li])
+        except (IndexError, KeyError, TypeError, ValueError):
+            return chord
+    if not geoms:
+        return chord
+    merged = linemerge(list(dict.fromkeys(geoms))) if len(geoms) > 1 else geoms[0]
+    if merged.geom_type != "LineString":
+        return chord
+    d0, d1 = merged.project(Point(a)), merged.project(Point(b))
+    if d0 == d1:
+        return chord
+    part = substring(merged, d0, d1)
+    want = float(sec.get("length_m") or 0)
+    if part.geom_type != "LineString" or (want and abs(part.length - want) > max(25.0, 0.1 * want)):
+        return chord
+    return part
+
+
+def feeder_layer(feeder: dict, lines: gpd.GeoDataFrame | None = None, *, show: bool = True) -> folium.GeoJson | None:
+    """Toy feeder path: one line per model section plus a marker per bus. None if unusable.
+
+    ``lines`` (EPSG:7855, same row order as when the feeder was built) lets the sections follow the
+    OSM way geometry; without it the sections are straight lines between buses.
+    """
+    path = feeder.get("path", {})
+    bus_xy = path.get("bus_xy_epsg7855") or []
+    secs = path.get("model_sections") or []
+    if len(bus_xy) < 2 or str(path.get("crs", "EPSG:7855")).upper() != "EPSG:7855":
+        return None
+    res = feeder.get("results", {})
+    base, dbl = res.get("base", {}), res.get("doubled", {})
+    model = feeder.get("model", {})
+
+    def pu(r, key, i):
+        try:
+            return f"{r[key][i]:.3f} pu"
+        except (KeyError, IndexError, TypeError):
+            return None
+
+    def pct(r, i):
+        try:
+            return f"{r['line_loading_pct'][i]:.0f} %"
+        except (KeyError, IndexError, TypeError):
+            return None
+
+    geoms, props = [], []
+    sub = path.get("substation_name")
+    load_buses = set(model.get("load_buses") or [])
+    for i, (x, y) in enumerate(bus_xy):
+        role = f"Source bus: {sub}" if i == 0 and sub else ("Source bus" if i == 0 else f"Bus {i}")
+        rows = [("assumed load", f"{model['load_kw']:g} kW at pf {model['power_factor']:g}"
+                 if i in load_buses and "load_kw" in model and "power_factor" in model else None),
+                ("voltage, base loads", pu(base, "bus_vm_pu", i)), ("voltage, loads doubled", pu(dbl, "bus_vm_pu", i)),
+                ("distance from source", f"{base['bus_distance_km'][i]:.2f} km"
+                 if i < len(base.get("bus_distance_km") or []) else None)]
+        geoms.append(Point(x, y))
+        props.append({"popup": _popup(f"Toy feeder: {role}", [("note", TOY_NOTE)] + rows), "kind": "bus"})
+    osm_sections = path.get("osm_sections") or []
+    for k, sec in enumerate(secs):
+        if k + 1 >= len(bus_xy):
+            break
+        geom = _section_geometry(sec, osm_sections, lines, tuple(bus_xy[k]), tuple(bus_xy[k + 1]))
+        ways = ", ".join(osm_link("way", w) for w in sec.get("osm_ids") or [])
+        rows = [("note", TOY_NOTE), ("length", f"{sec['length_m']:,.0f} m" if _has(sec.get("length_m")) else None),
+                ("assumed cable", model.get("std_type")),
+                ("loading, base loads", pct(base, k)), ("loading, loads doubled", pct(dbl, k))]
+        popup = _popup(f"Toy feeder: section {sec.get('section', k + 1)}", rows)
+        if ways:
+            popup += "<br>OSM ways: " + ways  # links built by osm_link (ids are ints)
+        geoms.append(geom)
+        props.append({"popup": popup, "kind": "section"})
+    g = gpd.GeoDataFrame(props, geometry=geoms, crs=7855)
+    g = prepare(g)
+
+    def style(f):
+        if f["properties"]["kind"] == "bus":
+            return {"color": "#222222", "weight": 1, "fillColor": FEEDER_COLOUR, "fillOpacity": 1, "radius": 5}
+        return {"color": FEEDER_COLOUR, "weight": 6, "opacity": 0.85}
+
+    return _popup_layer(_geojson(g, ["popup", "kind"]), style, name=FEEDER_LAYER_NAME, show=show,
+                        marker=folium.CircleMarker(radius=5), highlight=True)
+
+
+# ---------------------------------------------------------------------------
 # legend / disclaimer
 # ---------------------------------------------------------------------------
 
@@ -319,7 +455,7 @@ def _swatch(colour: str, kind: str = "line", dashed: bool = False) -> str:
     return f'<span style="display:inline-block;width:22px;border-top:3px {style} {colour};margin-right:6px;vertical-align:middle"></span>'
 
 
-def legend_html() -> str:
+def legend_html(feeder: bool = False) -> str:
     rows = [f'{_swatch(BAND_COLOURS[b])}{b}' for b in ("330 kV", "132 kV", "66 kV", "22 kV", "11 kV", "LV (415 V)", "unknown")]
     rows.append(f'{_swatch("#444", dashed=True)}Underground cable (dashed)')
     rows.append("<hr style='margin:4px 0'>")
@@ -328,6 +464,9 @@ def legend_html() -> str:
     rows.append(f'{_swatch(SUB_STYLE["distribution"][0], "dot")}Distribution substation')
     rows.append(f'{_swatch("#8DD3C7", "box")}Rough nearest-substation area<br>'
                 '<span style="margin-left:28px;font-size:10px">(geometric estimate, not a feeder boundary)</span>')
+    if feeder:
+        rows.append(f'{_swatch(FEEDER_COLOUR)}Toy feeder path (assumed-load model, not a real feeder study)')
+    rows.append(f'{_swatch("#444")}Thin line: substation bay / busbar'.replace("border-top:3px", "border-top:1px"))
     rows.append("<hr style='margin:4px 0'>")
     rows.append(f'{_swatch("#E31A1C", "dot")}Likely error (on)')
     rows.append(f'{_swatch("#FF7F00", "dot")}To check: dangling end / floating / conflict (off)')
@@ -362,8 +501,13 @@ def build_map(
     suburbs: gpd.GeoDataFrame,
     issues: gpd.GeoDataFrame,
     boundary: gpd.GeoDataFrame | None = None,
+    feeder: dict | None = None,
 ) -> folium.Map:
-    """Assemble the map. All inputs are in a projected CRS (EPSG:7855)."""
+    """Assemble the map. All inputs are in a projected CRS (EPSG:7855).
+
+    ``feeder`` is the parsed outputs/feeder_results.json; when None (or unusable) the toy-feeder
+    layer is skipped.
+    """
     ref = boundary if boundary is not None and len(boundary) else lines
     minx, miny, maxx, maxy = prepare(ref).total_bounds
     m = folium.Map(location=[(miny + maxy) / 2, (minx + maxx) / 2], zoom_start=9, tiles=None,
@@ -387,6 +531,9 @@ def build_map(
     _line_layer(lines[ug], LAYER_NAMES["underground"], dashed=True).add_to(m)
     _line_layer(over[cls == "transmission"], LAYER_NAMES["transmission"]).add_to(m)
     substation_layer(substations).add_to(m)
+    feeder_lyr = feeder_layer(feeder, lines) if feeder else None
+    if feeder_lyr is not None:
+        feeder_lyr.add_to(m)
 
     grp = issues["group"] if "group" in issues.columns else pd.Series(LIKELY_ERROR, index=issues.index)
     issue_layer(issues[grp == TAG_GAP], LAYER_NAMES["tag_gap"], show=False, use_geometry=False).add_to(m)
@@ -396,7 +543,7 @@ def build_map(
     folium.LayerControl(collapsed=False, position="topright").add_to(m)
     root = m.get_root().html
     root.add_child(folium.Element(disclaimer_html()))
-    root.add_child(folium.Element(legend_html()))
+    root.add_child(folium.Element(legend_html(feeder_lyr is not None)))
     m.get_root().header.add_child(folium.Element("<title>ACT electricity network (OSM) - explorer</title>"))
     return m
 
@@ -410,7 +557,10 @@ def main() -> int:
     areas = gpd.read_file(service_areas.SERVICE_AREAS_PATH, layer=service_areas.AREAS_LAYER)
     issues = gpd.read_file(TOPOLOGY_PATH, layer=ISSUES_LAYER)
 
-    m = build_map(lines, subs, areas, suburbs, issues, boundary)
+    feeder = load_feeder_results()
+    if feeder is None:
+        print(f"No usable {FEEDER_JSON.name}: toy feeder layer skipped (run `python -m act_network.feeder`).")
+    m = build_map(lines, subs, areas, suburbs, issues, boundary, feeder)
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
     m.save(str(MAP_HTML))
     print(f"Wrote {MAP_HTML} ({MAP_HTML.stat().st_size / 1e6:.1f} MB)")

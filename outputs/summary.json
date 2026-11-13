@@ -1,0 +1,184 @@
+{
+  "generated": "2026-11-13",
+  "data_note": "Data: \u00a9 OpenStreetMap contributors (ODbL); suburbs \u00a9 ABS (CC BY 4.0). Public OSM data \u2014 NOT Evoenergy network data; OSM power data is incomplete. Service areas are rough geometric estimates, not feeder boundaries.",
+  "lines": {
+    "n_line_segments": 6804,
+    "n_segments_crossing_act_boundary": 49,
+    "n_segments_wholly_outside_act": 0,
+    "total_km": 1817.7,
+    "total_km_whole_ways": 2192.2,
+    "km_by_voltage_band": {
+      "330 kV": 85.3,
+      "132 kV": 274.0,
+      "66 kV": 24.8,
+      "22 kV": 33.0,
+      "11 kV": 635.7,
+      "LV (415 V)": 617.6,
+      "unknown": 147.3
+    },
+    "km_by_voltage_band_whole_ways": {
+      "330 kV": 357.3,
+      "132 kV": 280.8,
+      "66 kV": 91.4,
+      "22 kV": 34.0,
+      "11 kV": 648.9,
+      "LV (415 V)": 617.6,
+      "unknown": 162.3
+    },
+    "km_by_line_class": {
+      "transmission": 384.2,
+      "distribution": 1286.3,
+      "unknown": 147.3
+    },
+    "km_by_line_class_whole_ways": {
+      "transmission": 729.5,
+      "distribution": 1300.5,
+      "unknown": 162.3
+    },
+    "km_underground": 14.3,
+    "km_underground_whole_ways": 14.4,
+    "n_underground_segments": 31,
+    "n_substation_bay_busbar_ways": 114,
+    "km_substation_bays_busbars": 5.24,
+    "km_substation_bays_busbars_whole_ways": 5.24,
+    "km_substation_bays_busbars_by_line_class": {
+      "transmission": 5.24
+    },
+    "km_transmission_excl_bays_busbars": 378.9
+  },
+  "substations": {
+    "zone_duplicate_names": [
+      "Angle Crossing Zone Substation"
+    ],
+    "total": 59,
+    "by_sub_class": {
+      "transmission": 5,
+      "zone": 17,
+      "distribution": 37
+    },
+    "zone_sites_by_name": 16,
+    "n_unnamed": 36,
+    "n_in_act": 59,
+    "n_duplicate_features_flagged": 2,
+    "flagged_duplicates": [
+      "same name: substation 'Angle Crossing Zone Substation' has the same name as substation 680650738",
+      "nested footprint: substation 'Canberra STS' footprint lies mostly inside the footprint of substation 160191425"
+    ]
+  },
+  "zone_service_areas": 16,
+  "transformers": {
+    "total": 83,
+    "by_source": {
+      "power=transformer": 43,
+      "pole transformer tag": 40
+    }
+  },
+  "quality_issues": {
+    "total_rows": 6044,
+    "by_group": {
+      "likely_error": 29,
+      "to_check": 5389,
+      "tag_gap": 626
+    },
+    "by_check": {
+      "dangling_end": 4358,
+      "duplicate_substation": 2,
+      "floating_component": 764,
+      "missing_voltage": 626,
+      "overlapping_lines": 26,
+      "voltage_conflict": 268
+    },
+    "by_check_and_group": {
+      "dangling_end/likely_error": 1,
+      "dangling_end/to_check": 4357,
+      "duplicate_substation/likely_error": 1,
+      "duplicate_substation/to_check": 1,
+      "floating_component/to_check": 764,
+      "missing_voltage/tag_gap": 626,
+      "overlapping_lines/likely_error": 26,
+      "voltage_conflict/likely_error": 1,
+      "voltage_conflict/to_check": 267
+    },
+    "distinct_osm_objects_flagged": 5337,
+    "likely_error_outside_substations": 7,
+    "likely_error_inside_substations": 22,
+    "overlapping_lines_inside_substations": 22,
+    "overlapping_lines_substation_sites": 3,
+    "overlapping_lines_total": 26,
+    "duplicate_substations_by_kind": {
+      "nested_footprint": 1,
+      "same_name": 1
+    }
+  },
+  "top_furthest_suburbs": [
+    {
+      "rank": 1,
+      "suburb": "Uriarra Village",
+      "distance_km": 13.6,
+      "nearest_substation": "Latham Zone Substation"
+    },
+    {
+      "rank": 2,
+      "suburb": "Tharwa",
+      "distance_km": 7.4,
+      "nearest_substation": "Theodore Zone Substation"
+    },
+    {
+      "rank": 3,
+      "suburb": "Whitlam",
+      "distance_km": 6.9,
+      "nearest_substation": "Civic Zone Substation"
+    },
+    {
+      "rank": 4,
+      "suburb": "Denman Prospect",
+      "distance_km": 5.9,
+      "nearest_substation": "Woden Substation"
+    },
+    {
+      "rank": 5,
+      "suburb": "Macnamara",
+      "distance_km": 5.6,
+      "nearest_substation": "Latham Zone Substation"
+    }
+  ],
+  "feeder": {
+    "substation": "Fyshwick Zone Substation",
+    "substation_osm_id": 344074567,
+    "fallback_path": false,
+    "path_length_km": 8.47,
+    "n_osm_ways": 6,
+    "n_buses": 10,
+    "n_model_sections": 9,
+    "reachable_11kv_km": 14.73,
+    "n_zone_substations": 17,
+    "n_zone_substations_with_11kv": 2,
+    "cable_std_type": "NA2XS2Y 1x185 RM/25 12/20 kV",
+    "n_loads": 9,
+    "load_kw_each": 200.0,
+    "power_factor": 0.95,
+    "base": {
+      "load_multiplier": 1.0,
+      "total_load_kw": 1800.0,
+      "end_voltage_pu": 0.986,
+      "end_voltage_drop_pct": 1.4,
+      "max_line_loading_pct": 27.4,
+      "total_losses_kw": 16.1,
+      "converged": true
+    },
+    "doubled": {
+      "load_multiplier": 2.0,
+      "total_load_kw": 3600.0,
+      "end_voltage_pu": 0.971,
+      "end_voltage_drop_pct": 2.87,
+      "max_line_loading_pct": 55.7,
+      "total_losses_kw": 66.8,
+      "converged": true
+    },
+    "voltage_limit_multiplier": 4.03,
+    "thermal_limit_multiplier": 3.52,
+    "binding_limit": "thermal (loading > 100 % of cable rating)",
+    "v_min_pu_reference": 0.94,
+    "loading_limit_pct_reference": 100.0
+  }
+}
