@@ -1,0 +1,137 @@
+suburb_name,distance_km,nearest_substation,is_remainder,rank_among_real_suburbs,rough_area
+Uriarra Village,13.602,Latham Zone Substation,False,1,Latham Zone Substation
+Tharwa,7.44,Theodore Zone Substation,False,2,Theodore Zone Substation
+Whitlam,6.935,Civic Zone Substation,False,3,Civic Zone Substation
+Denman Prospect,5.889,Woden Substation,False,4,Woden Substation
+Macnamara,5.611,Latham Zone Substation,False,5,Latham Zone Substation
+Strathnairn,5.129,Latham Zone Substation,False,6,Latham Zone Substation
+Throsby,4.798,Gold Creek Zone Substation,False,7,Gold Creek Zone Substation
+Molonglo,4.715,Woden Substation,False,8,Woden Substation
+Harrison,4.547,Gold Creek Zone Substation,False,9,Gold Creek Zone Substation
+Greenway,4.46,Wanniassa Zone Substation,False,10,Wanniassa Zone Substation
+Hall,4.437,Gold Creek Zone Substation,False,11,Gold Creek Zone Substation
+Bonython,4.28,Theodore Zone Substation,False,12,Theodore Zone Substation
+Mitchell,4.015,Bruce Switch Station,False,13,Bruce Switch Station
+Yarralumla,3.95,Civic Zone Substation,False,14,Civic Zone Substation
+Isabella Plains,3.915,Theodore Zone Substation,False,15,Theodore Zone Substation
+Watson,3.872,City East Substation,False,16,City East Substation
+Weetangera,3.861,Belconnen Zone Substation,False,17,Belconnen Zone Substation
+Chapman,3.829,Woden Substation,False,18,Woden Substation
+Cook,3.791,Belconnen Zone Substation,False,19,Belconnen Zone Substation
+Wright,3.752,Woden Substation,False,20,Woden Substation
+Franklin,3.717,Gold Creek Zone Substation,False,21,Gold Creek Zone Substation
+O'Malley,3.706,Wanniassa Zone Substation,False,22,Wanniassa Zone Substation
+Duffy,3.62,Woden Substation,False,23,Woden Substation
+Hawker,3.561,Latham Zone Substation,False,24,Latham Zone Substation
+Monash,3.531,Wanniassa Zone Substation,False,25,Wanniassa Zone Substation
+Crace,3.529,Gold Creek Zone Substation,False,26,Gold Creek Zone Substation
+Richardson,3.472,Gilmore Zone Substation,False,27,Gilmore Zone Substation
+Garran,3.448,Woden Substation,False,28,Woden Substation
+Rivett,3.437,Woden Substation,False,29,Woden Substation
+Deakin,3.317,Woden Substation,False,30,Woden Substation
+Coombs,3.195,Woden Substation,False,31,Woden Substation
+Fisher,3.166,Woden Substation,False,32,Woden Substation
+Oxley,3.166,Wanniassa Zone Substation,False,33,Wanniassa Zone Substation
+Spence,3.15,Latham Zone Substation,False,34,Latham Zone Substation
+Canberra Airport,3.084,East Lake Zone Substation,False,35,East Lake Zone Substation
+Gordon,3.07,Theodore Zone Substation,False,36,Theodore Zone Substation
+Red Hill,3.066,Telopea Park Substation,False,37,Telopea Park Substation
+Downer,3.063,City East Substation,False,38,City East Substation
+Hume,3.013,Gilmore Zone Substation,False,39,Gilmore Zone Substation
+Taylor,2.994,Gold Creek Zone Substation,False,40,Gold Creek Zone Substation
+Kambah,2.96,Wanniassa Zone Substation,False,41,Wanniassa Zone Substation
+Bonner,2.869,Gold Creek Zone Substation,False,42,Gold Creek Zone Substation
+Gowrie,2.869,Gilmore Zone Substation,False,43,Gilmore Zone Substation
+Macquarie,2.829,Belconnen Zone Substation,False,44,Belconnen Zone Substation
+Dunlop,2.824,Latham Zone Substation,False,45,Latham Zone Substation
+Aranda,2.797,Bruce Switch Station,False,46,Bruce Switch Station
+Symonston,2.794,Fyshwick Zone Substation,False,47,Fyshwick Zone Substation
+Page,2.721,Latham Zone Substation,False,48,Latham Zone Substation
+Fraser,2.696,Latham Zone Substation,False,49,Latham Zone Substation
+Forde,2.65,Gold Creek Zone Substation,False,50,Gold Creek Zone Substation
+Pearce,2.594,Wanniassa Zone Substation,False,51,Wanniassa Zone Substation
+Jacka,2.577,Gold Creek Zone Substation,False,52,Gold Creek Zone Substation
+Stirling,2.553,Woden Substation,False,53,Woden Substation
+Nicholls,2.492,Gold Creek Zone Substation,False,54,Gold Creek Zone Substation
+Isaacs,2.489,Wanniassa Zone Substation,False,55,Wanniassa Zone Substation
+Giralang,2.484,Belconnen Zone Substation,False,56,Belconnen Zone Substation
+Hackett,2.453,City East Substation,False,57,City East Substation
+Phillip,2.443,Woden Substation,False,58,Woden Substation
+Macgregor,2.436,Latham Zone Substation,False,59,Latham Zone Substation
+Fadden,2.378,Gilmore Zone Substation,False,60,Gilmore Zone Substation
+Holt,2.37,Latham Zone Substation,False,61,Latham Zone Substation
+Palmerston,2.339,Gold Creek Zone Substation,False,62,Gold Creek Zone Substation
+Mawson,2.321,Wanniassa Zone Substation,False,63,Wanniassa Zone Substation
+Chifley,2.302,Woden Substation,False,64,Woden Substation
+Hughes,2.288,Woden Substation,False,65,Woden Substation
+Gungahlin,2.27,Gold Creek Zone Substation,False,66,Gold Creek Zone Substation
+Holder,2.221,Woden Substation,False,67,Woden Substation
+Campbell,2.216,City East Substation,False,68,City East Substation
+City,2.216,Civic Zone Substation,False,69,Civic Zone Substation
+Evatt,2.216,Belconnen Zone Substation,False,70,Belconnen Zone Substation
+Higgins,2.201,Latham Zone Substation,False,71,Latham Zone Substation
+Narrabundah,2.193,Causeway Switch Station,False,72,Causeway Switch Station
+Waramanga,2.192,Woden Substation,False,73,Woden Substation
+Kaleen,2.18,Bruce Switch Station,False,74,Bruce Switch Station
+Chisholm,2.136,Gilmore Zone Substation,False,75,Gilmore Zone Substation
+Scullin,2.128,Latham Zone Substation,False,76,Latham Zone Substation
+Calwell,2.099,Theodore Zone Substation,False,77,Theodore Zone Substation
+Casey,2.062,Gold Creek Zone Substation,False,78,Gold Creek Zone Substation
+Banks,2.059,Theodore Zone Substation,False,79,Theodore Zone Substation
+Dickson,1.914,City East Substation,False,80,City East Substation
+Forrest,1.781,Telopea Park Substation,False,81,Telopea Park Substation
+Parkes,1.76,Telopea Park Substation,False,82,Telopea Park Substation
+Capital Hill,1.695,Telopea Park Substation,False,83,Telopea Park Substation
+Charnwood,1.684,Latham Zone Substation,False,84,Latham Zone Substation
+Griffith,1.681,Causeway Switch Station,False,85,Causeway Switch Station
+Reid,1.641,City East Substation,False,86,City East Substation
+Melba,1.636,Latham Zone Substation,False,87,Latham Zone Substation
+Russell,1.613,Telopea Park Substation,False,88,Telopea Park Substation
+Pialligo,1.611,East Lake Zone Substation,False,89,East Lake Zone Substation
+Torrens,1.599,Wanniassa Zone Substation,False,90,Wanniassa Zone Substation
+Florey,1.584,Latham Zone Substation,False,91,Latham Zone Substation
+Wanniassa,1.581,Wanniassa Zone Substation,False,92,Wanniassa Zone Substation
+Acton,1.576,Civic Zone Substation,False,93,Civic Zone Substation
+Belconnen,1.532,Belconnen Zone Substation,False,94,Belconnen Zone Substation
+Conder,1.498,Theodore Zone Substation,False,95,Theodore Zone Substation
+Lyneham,1.478,Bruce Switch Station,False,96,Bruce Switch Station
+McKellar,1.401,Belconnen Zone Substation,False,97,Belconnen Zone Substation
+Bruce,1.369,Bruce Switch Station,False,98,Bruce Switch Station
+Moncrieff,1.364,Gold Creek Zone Substation,False,99,Gold Creek Zone Substation
+Braddon,1.342,City East Substation,False,100,City East Substation
+Turner,1.273,Civic Zone Substation,False,101,Civic Zone Substation
+O'Connor,1.245,Bruce Switch Station,False,102,Bruce Switch Station
+Theodore,1.16,Theodore Zone Substation,False,103,Theodore Zone Substation
+Weston,1.101,Woden Substation,False,104,Woden Substation
+Flynn,1.087,Latham Zone Substation,False,105,Latham Zone Substation
+Amaroo,1.058,Gold Creek Zone Substation,False,106,Gold Creek Zone Substation
+Farrer,1.044,Wanniassa Zone Substation,False,107,Wanniassa Zone Substation
+Curtin,1.031,Woden Substation,False,108,Woden Substation
+Oaks Estate,0.974,Oaks Estate,False,109,Oaks Estate
+Macarthur,0.953,Gilmore Zone Substation,False,110,Gilmore Zone Substation
+Fyshwick,0.918,East Lake Zone Substation,False,111,East Lake Zone Substation
+Ngunnawal,0.826,Gold Creek Zone Substation,False,112,Gold Creek Zone Substation
+Lyons,0.817,Woden Substation,False,113,Woden Substation
+Ainslie,0.73,City East Substation,False,114,City East Substation
+Latham,0.664,Latham Zone Substation,False,115,Latham Zone Substation
+Gilmore,0.639,Gilmore Zone Substation,False,116,Gilmore Zone Substation
+Lawson,0.614,Belconnen Zone Substation,False,117,Belconnen Zone Substation
+Barton,0.596,Telopea Park Substation,False,118,Telopea Park Substation
+Beard,0.495,Oaks Estate,False,119,Oaks Estate
+Kingston,0.255,Causeway Switch Station,False,120,Causeway Switch Station
+ACT Remainder - Cotter River,26.96,Wanniassa Zone Substation,True,,Wanniassa Zone Substation
+ACT Remainder - Rendezvous Creek,19.668,Angle Crossing Zone Substation,True,,Angle Crossing Zone Substation
+ACT Remainder - Coree,14.227,Latham Zone Substation,True,,Latham Zone Substation
+ACT Remainder - Paddys River,12.275,Wanniassa Zone Substation,True,,Wanniassa Zone Substation
+ACT Remainder - Kowen,9.077,Oaks Estate,True,,Oaks Estate
+ACT Remainder - Booth,8.932,Angle Crossing Zone Substation,True,,Angle Crossing Zone Substation
+ACT Remainder - Stromlo,7.469,Woden Substation,True,,Woden Substation
+ACT Remainder - Hall,5.632,Latham Zone Substation,True,,Latham Zone Substation
+ACT Remainder - Belconnen,5.082,Latham Zone Substation,True,,Latham Zone Substation
+ACT Remainder - Majura,5.079,City East Substation,True,,City East Substation
+ACT Remainder - Molonglo Valley,4.522,Woden Substation,True,,Woden Substation
+ACT Remainder - Gungahlin,4.46,Gold Creek Zone Substation,True,,Gold Creek Zone Substation
+ACT Remainder - Jerrabomberra,4.297,Fyshwick Zone Substation,True,,Fyshwick Zone Substation
+ACT Remainder - Weston Creek,2.63,Woden Substation,True,,Woden Substation
+ACT Remainder - Tuggeranong,1.942,Theodore Zone Substation,True,,Theodore Zone Substation
+ACT Remainder - Canberra Central,1.233,Civic Zone Substation,True,,Civic Zone Substation

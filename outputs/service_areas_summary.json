@@ -1,0 +1,106 @@
+{
+  "label": "rough nearest-substation area",
+  "disclaimer": "Rough nearest-substation area: a geometric (Voronoi) estimate from public OpenStreetMap data. NOT a real feeder or supply boundary; not Evoenergy data. Distances are straight-line from a suburb's representative point, not along the network.",
+  "data_source": "Public OpenStreetMap (c) OpenStreetMap contributors (ODbL); suburbs ABS ASGS 2021 (CC BY 4.0). Not Evoenergy network data.",
+  "crs": "EPSG:7855",
+  "counts": {
+    "substations_total": 59,
+    "zone_substation_rows": 17,
+    "zone_substations_after_dedupe": 16,
+    "service_areas": 16,
+    "empty_areas": 0,
+    "substations_outside_boundary": 0,
+    "suburbs_total": 136,
+    "suburbs_real": 120,
+    "suburbs_remainder": 16,
+    "suburb_points_in_a_different_area_than_nearest": 0
+  },
+  "merged_duplicates": [
+    {
+      "name": "Angle Crossing Zone Substation",
+      "osm_ids": "680650738;922881389",
+      "merge_spread_m": 11.3
+    }
+  ],
+  "total_area_km2": 2357.83,
+  "areas_km2": {
+    "Angle Crossing Zone Substation": 972.36,
+    "Woden Substation": 331.66,
+    "Theodore Zone Substation": 281.21,
+    "Wanniassa Zone Substation": 170.69,
+    "Latham Zone Substation": 154.54,
+    "Oaks Estate": 109.06,
+    "Gold Creek Zone Substation": 80.88,
+    "City East Substation": 72.65,
+    "Civic Zone Substation": 30.48,
+    "Belconnen Zone Substation": 30.05,
+    "Gilmore Zone Substation": 29.26,
+    "Fyshwick Zone Substation": 25.81,
+    "Bruce Switch Station": 23.55,
+    "Telopea Park Substation": 17.1,
+    "East Lake Zone Substation": 17.0,
+    "Causeway Switch Station": 11.54
+  },
+  "top_furthest_real_suburbs": [
+    {
+      "rank": 1,
+      "suburb": "Uriarra Village",
+      "distance_km": 13.6,
+      "nearest_substation": "Latham Zone Substation"
+    },
+    {
+      "rank": 2,
+      "suburb": "Tharwa",
+      "distance_km": 7.44,
+      "nearest_substation": "Theodore Zone Substation"
+    },
+    {
+      "rank": 3,
+      "suburb": "Whitlam",
+      "distance_km": 6.93,
+      "nearest_substation": "Civic Zone Substation"
+    },
+    {
+      "rank": 4,
+      "suburb": "Denman Prospect",
+      "distance_km": 5.89,
+      "nearest_substation": "Woden Substation"
+    },
+    {
+      "rank": 5,
+      "suburb": "Macnamara",
+      "distance_km": 5.61,
+      "nearest_substation": "Latham Zone Substation"
+    },
+    {
+      "rank": 6,
+      "suburb": "Strathnairn",
+      "distance_km": 5.13,
+      "nearest_substation": "Latham Zone Substation"
+    },
+    {
+      "rank": 7,
+      "suburb": "Throsby",
+      "distance_km": 4.8,
+      "nearest_substation": "Gold Creek Zone Substation"
+    },
+    {
+      "rank": 8,
+      "suburb": "Molonglo",
+      "distance_km": 4.72,
+      "nearest_substation": "Woden Substation"
+    },
+    {
+      "rank": 9,
+      "suburb": "Harrison",
+      "distance_km": 4.55,
+      "nearest_substation": "Gold Creek Zone Substation"
+    },
+    {
+      "rank": 10,
+      "suburb": "Greenway",
+      "distance_km": 4.46,
+      "nearest_substation": "Wanniassa Zone Substation"
+    }
+  ]
+}
