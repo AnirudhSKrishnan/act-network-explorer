@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>ACT Electricity Network Explorer</title>
+<meta name="description" content="Maps the ACT's electricity network from public OpenStreetMap data with open-source GIS tools, checks it for data-quality problems, and runs a toy load flow on one 11 kV path.">
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f3f5f8;
+  --border: #d3d9e0;
+  --text: #1b2330;
+  --muted: #4a5663;
+  --link: #0b5cad;
+  --accent: #0b5cad;
+  --accent-text: #ffffff;
+  --note-bg: #fff6dd;
+  --note-border: #c9a227;
+  --err-bg: #fdecea;
+  --err-border: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161c;
+    --surface: #1b212a;
+    --border: #364150;
+    --text: #e6e9ee;
+    --muted: #a9b3bf;
+    --link: #7db4f0;
+    --accent: #7db4f0;
+    --accent-text: #0c1117;
+    --note-bg: #2a2410;
+    --note-border: #a8851c;
+    --err-bg: #2d1715;
+    --err-border: #e0786f;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.wrap { max-width: 56rem; margin: 0 auto; padding: 0 16px; }
+header { padding: 2rem 0 1rem; }
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 .6rem; }
+h2 { font-size: 1.25rem; margin: 2.2rem 0 .8rem; }
+p { margin: 0 0 1rem; }
+a { color: var(--link); }
+a:focus-visible, .btn:focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
+.lede { font-size: 1.1rem; color: var(--text); max-width: 46rem; }
+.notes {
+  background: var(--note-bg);
+  border: 1px solid var(--note-border);
+  border-left-width: 4px;
+  border-radius: 4px;
+  padding: .7rem 1rem;
+  margin: 1.2rem 0;
+}
+.notes ul { margin: 0; padding-left: 1.2rem; }
+.notes li { margin: .2rem 0; }
+.cta { margin: 1.5rem 0 .5rem; }
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: .75rem 1.3rem;
+  border-radius: 4px;
+  text-decoration: none;
+}
+.btn:hover { filter: brightness(1.1); }
+.small { font-size: .875rem; color: var(--muted); }
+#status {
+  display: none;
+  background: var(--err-bg);
+  border: 1px solid var(--err-border);
+  border-radius: 4px;
+  padding: .7rem 1rem;
+  margin: 1rem 0;
+}
+#status.show { display: block; }
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 12px;
+}
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  min-width: 0;
+}
+.tile h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 .4rem; font-weight: 600; }
+.big { font-size: 2rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.big .unit { font-size: 1rem; font-weight: 500; color: var(--muted); }
+.tile dl { margin: .6rem 0 0; display: grid; grid-template-columns: 1fr auto; gap: .15rem .75rem; font-size: .95rem; }
+.tile dt { color: var(--muted); }
+.tile dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.tile p.small { margin: .6rem 0 0; }
+figure { margin: 1.5rem 0; max-width: 45rem; }
+figure img { display: block; max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 4px; background: #fff; }
+figcaption { font-size: .9rem; color: var(--muted); margin-top: .5rem; }
+ul.plain { padding-left: 1.2rem; margin: 0 0 1rem; }
+ul.plain li { margin: .25rem 0; }
+.links { list-style: none; padding: 0; margin: 0; }
+.links li { margin: .35rem 0; overflow-wrap: anywhere; }
+footer { border-top: 1px solid var(--border); margin-top: 2.5rem; padding: 1.2rem 0 2rem; color: var(--muted); font-size: .875rem; }
+footer p { margin: 0 0 .3rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>ACT Electricity Network Explorer</h1>
+  <p class="lede">Maps the ACT's electricity network from public OpenStreetMap data using open-source GIS tools, checks it for connectivity and data-quality problems, estimates rough nearest-substation areas, and runs a toy load flow on one 11 kV path.</p>
+
+  <div class="notes" role="note" aria-label="Data and model caveats">
+    <ul>
+      <li>Public OpenStreetMap data; not official network operator data; OSM power data is incomplete.</li>
+      <li>Service areas are rough geometric estimates, not feeder boundaries.</li>
+      <li>The feeder is a toy model with assumed loads and cable type.</li>
+    </ul>
+  </div>
+
+  <div class="cta">
+    <a class="btn" href="outputs/map.html">Open the interactive map</a>
+    <p class="small" style="margin-top:.5rem">The map file is about 8 MB and takes a few seconds to load.</p>
+  </div>
+</header>
+
+<main>
+  <div id="status" role="status">Numbers load from outputs/summary.json — view the hosted page or run a local server</div>
+
+  <section aria-labelledby="figs">
+    <h2 id="figs">Figures</h2>
+    <div class="tiles">
+      <article class="tile">
+        <h3>Line inside the ACT</h3>
+        <div class="big"><span data-src="summary" data-path="lines.total_km" data-fmt="km">…</span> <span class="unit">km</span></div>
+        <dl>
+          <dt>Transmission</dt><dd><span data-src="summary" data-path="lines.km_by_line_class.transmission" data-fmt="km">…</span> km</dd>
+          <dt>Distribution</dt><dd><span data-src="summary" data-path="lines.km_by_line_class.distribution" data-fmt="km">…</span> km</dd>
+          <dt>No voltage tag</dt><dd><span data-src="summary" data-path="lines.km_by_line_class.unknown" data-fmt="km">…</span> km</dd>
+        </dl>
+      </article>
+
+      <article class="tile">
+        <h3>Zone substation sites</h3>
+        <div class="big"><span data-src="summary" data-path="substations.zone_sites_by_name" data-fmt="int">…</span></div>
+        <p class="small">Distinct sites among <span data-src="summary" data-path="substations.by_sub_class.zone" data-fmt="int">…</span> zone substation features in OSM.</p>
+      </article>
+
+      <article class="tile">
+        <h3>Rows flagged by the checks</h3>
+        <div class="big"><span data-src="summary" data-path="quality_issues.total_rows" data-fmt="int">…</span></div>
+        <dl>
+          <dt>Likely error</dt><dd><span data-src="summary" data-path="quality_issues.by_group.likely_error" data-fmt="int">…</span></dd>
+          <dt>To check</dt><dd><span data-src="summary" data-path="quality_issues.by_group.to_check" data-fmt="int">…</span></dd>
+          <dt>Tag gap</dt><dd><span data-src="summary" data-path="quality_issues.by_group.tag_gap" data-fmt="int">…</span></dd>
+        </dl>
+        <p class="small">Flagged rows are not confirmed faults; none has been verified against the real network.</p>
+      </article>
+
+      <article class="tile">
+        <h3>Toy feeder: end-of-feeder voltage drop</h3>
+        <dl>
+          <dt>Base load</dt><dd><span data-src="summary" data-path="feeder.base.end_voltage_drop_pct" data-fmt="pct">…</span>%</dd>
+          <dt>Doubled load</dt><dd><span data-src="summary" data-path="feeder.doubled.end_voltage_drop_pct" data-fmt="pct">…</span>%</dd>
+        </dl>
+        <p class="small">Along <span data-src="summary" data-path="feeder.path_length_km" data-fmt="km">…</span> km of OSM 11 kV path. Assumed loads and cable type.</p>
+      </article>
+    </div>
+    <p class="small" style="margin-top:.8rem">Figures read from <a href="outputs/summary.json">outputs/summary.json</a>, generated <span data-src="summary" data-path="generated" data-fmt="text">…</span>.</p>
+  </section>
+
+  <section aria-labelledby="pics">
+    <h2 id="pics">Pictures</h2>
+    <figure>
+      <img src="outputs/map.png" width="1200" height="1725" loading="lazy" alt="Static map of the ACT power network from OpenStreetMap, with lines coloured by voltage class and zone substations marked.">
+      <figcaption>Static map of the mapped network. The interactive version has layers, popups and rough service areas.</figcaption>
+    </figure>
+    <figure>
+      <img src="outputs/feeder_profile.png" width="1200" height="690" loading="lazy" alt="Chart of per-unit voltage along the toy 11 kV feeder at base load and at doubled load.">
+      <figcaption>Voltage along the toy 11 kV feeder, base load against doubled load. Loads and cable type are assumed.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="what">
+    <h2 id="what">What it does</h2>
+    <ul class="plain">
+      <li>Fetches OpenStreetMap power data for the ACT.</li>
+      <li>Cleans it and classifies lines by voltage.</li>
+      <li>Builds a network graph, snapping nearby line ends together.</li>
+      <li>Runs data-quality checks for dangling ends, floating sections, conflicting and missing voltage tags, and duplicates.</li>
+      <li>Estimates rough nearest-substation areas.</li>
+      <li>Runs a toy pandapower load flow on one 11 kV path.</li>
+    </ul>
+    <p><strong>Built with:</strong> Python, GeoPandas, shapely, networkx, folium, pandapower.</p>
+  </section>
+
+  <section aria-labelledby="links">
+    <h2 id="links">Source and reports</h2>
+    <ul class="links">
+      <li><a href="https://github.com/AnirudhSKrishnan/act-network-explorer">Source code on GitHub</a></li>
+      <li><a href="https://github.com/AnirudhSKrishnan/act-network-explorer/blob/main/outputs/quality_report.md">Data-quality report (quality_report.md)</a></li>
+      <li><a href="https://github.com/AnirudhSKrishnan/act-network-explorer/blob/main/outputs/summary.md">Summary (summary.md)</a></li>
+      <li><a href="https://github.com/AnirudhSKrishnan/act-network-explorer/blob/main/outputs/feeder_results.md">Toy feeder results and assumptions (feeder_results.md)</a></li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <p>© OpenStreetMap contributors (ODbL)</p>
+  <p>Suburbs © ABS (CC BY 4.0)</p>
+</footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var SOURCES = { summary: 'outputs/summary.json' };
+
+  var formatters = {
+    km: function (v) { return v.toLocaleString('en-AU', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); },
+    int: function (v) { return v.toLocaleString('en-AU', { maximumFractionDigits: 0 }); },
+    pct: function (v) { return v.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+    text: function (v) { return String(v); }
+  };
+
+  function lookup(obj, path) {
+    var parts = path.split('.');
+    for (var i = 0; i < parts.length; i++) {
+      if (obj === null || typeof obj !== 'object' || !(parts[i] in obj)) { return undefined; }
+      obj = obj[parts[i]];
+    }
+    return obj;
+  }
+
+  function showError() {
+    document.getElementById('status').className = 'show';
+    var nodes = document.querySelectorAll('[data-path]');
+    for (var i = 0; i < nodes.length; i++) { nodes[i].textContent = 'n/a'; }
+  }
+
+  function fill(name, data) {
+    var nodes = document.querySelectorAll('[data-src="' + name + '"][data-path]');
+    var bad = false;
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var v = lookup(data, el.getAttribute('data-path'));
+      var fmt = formatters[el.getAttribute('data-fmt')] || formatters.text;
+      var ok = el.getAttribute('data-fmt') === 'text' ? v !== undefined && v !== null : typeof v === 'number' && isFinite(v);
+      if (ok) { el.textContent = fmt(v); } else { el.textContent = 'n/a'; bad = true; }
+    }
+    return !bad;
+  }
+
+  var names = Object.keys(SOURCES);
+  Promise.all(names.map(function (name) {
+    return fetch(SOURCES[name]).then(function (r) {
+      if (!r.ok) { throw new Error(SOURCES[name] + ' ' + r.status); }
+      return r.json();
+    });
+  })).then(function (all) {
+    var good = true;
+    names.forEach(function (name, i) { if (!fill(name, all[i])) { good = false; } });
+    if (!good) { document.getElementById('status').className = 'show'; }
+  }).catch(showError);
+})();
+</script>
+</body>
+</html>
